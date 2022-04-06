@@ -1,0 +1,16 @@
+{
+  "name": "creative_project",
+  "version": "1.0.0",
+  "description": "Anton Dmitriev's CSE330S creative project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Anton Dmitriev",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.3",
+    "mongoose": "^6.2.10",
+    "react": "^18.0.0"
+  }
+}
