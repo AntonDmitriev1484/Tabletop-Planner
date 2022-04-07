@@ -29,27 +29,51 @@ mongoose.connection.on('error', () => {
 })
 
 
-storage_test();
-function storage_test() {
-  let user = new user_model();
+// storage_test();
+// function storage_test() {
+//   let user = new user_model();
 
-  user.firstName = "bob";
-  user.lastName = "test";
-  user.biography = "stinky";
+//   user.username="timestamp man";
+//   user.full_name = "Anton Dmitriev";
+//   user.email = "a.dmitriev@wustl.edu";
+//   // user.firstName = "Anton";
+//   // user.lastName = "Dmitriev";
+//   user.password =  "password";
+//   user.semester = 4;
+//   user.events_unresolved.push("Some Event");
 
-  console.log(JSON.stringify(user));
+//   console.log(JSON.stringify(user));
 
-  //markModified might be necessary if you're ever making changes to an array that's embedded within an object
-  // user.markModified('firstName');
   
-  // user.markModified('lastName');
+
+//   //markModified might be necessary if you're ever making changes to an array that's embedded within an object
+//   // user.markModified('firstName');
   
-  // user.markModified('biography');
-  user.save() //Save creates a new entry, or updates an already existing one. Not sure under what conditions it updates an existing one
-  .then(() => {
-    console.log('saved');
-  })
-  .catch((error)=>{
-    console.log(error);
-  });
-}
+//   // user.markModified('lastName');
+  
+//   // user.markModified('biography');
+//   user.save() //Save creates a new entry, or updates an already existing one. Not sure under what conditions it updates an existing one
+//   .then(() => {
+//     console.log('saved');
+//   })
+//   .catch((error)=>{
+//     console.log(error);
+//   });
+
+// }
+
+
+// f_test();
+// async function f_test() {
+
+//   //can use the model object to create a query
+//   //then call .exect() to execute that query
+//   const result = await user_model.find({first_name:"Anton"}).exec();
+
+//   const anton = result[0]; //Result returned an array of options which matched the query
+//   console.log(anton);
+//   console.log("Full name " +anton.full_name); //Just accessing the virtual field as though it actually exists
+//   console.log("Password attempt 1 "+anton.check_pass("password"));
+//   console.log("Password attempt 2 "+anton.check_pass("weaboo"));
+// }
+
