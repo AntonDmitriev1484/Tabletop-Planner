@@ -1,28 +1,39 @@
-// import mon from "mongoose"
-// //import { model, Schema } from "mongoose";
-// const {model, Schema} = mon;
-
 import mongodb from "mongodb"
 const MongoClient = mongodb.MongoClient;
 
-const mongo_cli = new MongoClient("mongodb://localhost:27017/creative_project_db");
-//Gives us a client through which we can now interact with mongodb
+import mongoose from 'mongoose';
 
-try {
-    mongo_cli.connect();
+
+function connect() {
+
+
+    const mongo_cli = new MongoClient("mongodb://localhost:27017/creative_project_db");
+    //Gives us a client through which we can now interact with mongodb
+
+    try {
+        mongo_cli.connect();
+    }
+    catch (err){
+        console.error(err);
+    }
+
+
+    mongoose.Promise = global.Promise;
+    mongoose.connect("mongodb://localhost:27017/creative_project_db");
+    mongoose.connection.on('error', () => {
+        throw new Error ('unable to connect to creative_project_db');
+    })
+
+    return mongo_cli;
 }
-catch (err){
-    console.error(err);
-}
 
-a();
+export default connect;
+// a();
 
-async function a() {
-    const db_list = await mongo_cli.db().admin().listDatabases();
-    console.log(db_list);
-}
-
-
+// async function a() {
+//     const db_list = await mongo_cli.db().admin().listDatabases();
+//     console.log(db_list);
+// }
 
 
 // // "use creative_project_db" automatically creates a new database creative_project_db
