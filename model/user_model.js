@@ -10,12 +10,17 @@ const user_schema = new Schema(
         type: Date, 
         default: Date.now 
     },
-    username: {
+    username: { //Might want to create a compound index. https://www.mongodb.com/docs/manual/indexes/
+            //I'll just use the object_id index which mongodb provides and leave this for later
         type: String,
         required: "Username is required"
     },
+    username_num_code: { //Discord style, adding a unique 4 digit code to each user, so that users can have the same username
+        type: Number,
+    },
     email: {
         type: String,
+        required: "Email is required"
         //Possible regex opportunity here
     },
     pass_hash: {
@@ -35,7 +40,7 @@ const user_schema = new Schema(
         type: Number
     },
 
-    events_unresolved: [
+    events_unresolved: [ //This can probably stay as an array because at any given time you will have less than 20 homework assignments
             // {
             //       type: mongoose.Schema.Types.Homework
             // }
@@ -99,6 +104,12 @@ user_schema.virtual('full_name')
 //Setting up functions that our model can use with its data
 //Instance methods
 
+//Maybe adde a function which can embed a homework
+//or update an embedded homework
+//Add a function which automatically unembeds and references homeworks which have already been completed
+//Could we possibly add a listener on the progress field of homework?
+
+
 user_schema.methods = {
 
     //Most importantly, mongoose lets us add a password validation function into the model object.
@@ -106,9 +117,30 @@ user_schema.methods = {
         //hashes the incoming password
         let hash = crypto.pbkdf2Sync(pass_attempt, this.salt, 1000, 64, `sha512`).toString(`hex`); 
         return this.pass_hash === hash; 
-    }
+    },
 
+    add_homework: function(homework) {
+        //Expected parameter is a homework model object
+        this.events_unresolved.push(homework);
 
+    },
+
+    // update_homework: function (updated_homework) {
+    //     //Rather than creating two objects, it'd be easier if I could pass the key value pair
+    //     //which I want to update as the parameter, and then simply update that k-v pair in the object
+
+    //     //Perform linear search over events_unresolved
+    //     //whenever you find a matching object id, swap contents with the updated_homework
+
+    //     for (let i =0; i< this.events_unresolved.length;i++){
+    //         if (updated_homework._id === this.events_unresolved[i]._id){
+    //             this.events_unresolved[i] = updated_homework;
+    //         }
+    //     }
+    // }
+
+    //MongoDB model objects already provide an updateOne function
+//https://www.codementor.io/@prasadsaya/working-with-arrays-in-mongodb-16s303gkd3
 
 }
 
