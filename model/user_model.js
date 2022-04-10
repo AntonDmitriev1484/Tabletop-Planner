@@ -4,6 +4,9 @@ const {model, Schema} = mongoose;
 import crypto from "crypto";
 import { timeStamp } from "console";
 
+import {homework_model, homework_schema} from "./homework_model.js"
+import {pcourse_model, pcourse_schema} from "./pcourse_model.js"
+
 const user_schema = new Schema(
   {
     date_time_created: { 
@@ -40,17 +43,22 @@ const user_schema = new Schema(
         type: Number
     },
 
-    events_unresolved: [ //This can probably stay as an array because at any given time you will have less than 20 homework assignments
-            // {
-            //       type: mongoose.Schema.Types.Homework
-            // }
-    ], //Unresolved events will be embedded, to decrease look-up times for that week
+    events_unresolved: [ 
+        homework_schema
+    ],
+    //This can probably stay as an array because at any given time you will have less than 20 homework assignments
+    //Unresolved events will be embedded, to decrease look-up times for that week
 
-    events_resolved: [ //Resolved events will be stored by reference, these will probably be accessed less frequently
-            {
-                  type: mongoose.Schema.Types.ObjectId,
-            }
-        ]
+    events_archived: {type: mongoose.Schema.ObjectId},
+
+    courses_current: [
+        pcourse_schema
+    ],
+
+    course_archived: {type: mongoose.Schema.ObjectId},
+
+    university: {type: mongoose.Schema.ObjectId},
+
   },
 
     { 
@@ -148,65 +156,3 @@ const user_model = model("user_model", user_schema);
 export default user_model;
 
 
-
-
-
-//Doing one to many relationship:
-// Tutorial: https://www.bezkoder.com/mongoose-one-to-many-relationship/
-
-//  Referenced, just specify an array of type String to store ref _ids
-//  {    
-//     _id: "5db579f5faf1f8434098f7f5"
-//     title: "Tutorial #1",
-//     author: "bezkoder"
-//     comments: [ "5db57a03faf1f8434098f7f8", "5db57a04faf1f8434098f7f9" ],
-//   }
-//   // Comments
-//   {
-//     _id: "5db57a03faf1f8434098f7f8",
-//     username: "jack",
-//     text: "This is a great tutorial.",
-//     createdAt: 2019-10-27T11:05:39.898Z
-//   }
-//   {
-//     _id: "5db57a04faf1f8434098f7f9",
-//     username: "mary",
-//     text: "Thank you, it helps me alot.",
-//     createdAt: 2019-10-27T11:05:40.710Z
-//   }
-// Schema
-// comments: [
-//     {
-//       type: mongoose.Schema.Types.ObjectId,
-//       ref: "Comment"
-//     }
-//   ]
-
-//  Embedded uses an array to manage embedded elements
-
-// const mongoose = require("mongoose");
-// const Tutorial = mongoose.model(
-//   "Tutorial",
-//   new mongoose.Schema({
-//     title: String,
-//     author: String,
-//     images: []
-//   })
-// );
-// module.exports = Tutorial;
-
-//const createImage = function(tutorialId, image) {
-//     console.log("\n>> Add Image:\n", image);
-//     return db.Tutorial.findByIdAndUpdate(
-//       tutorialId,
-//       {
-//         $push: {
-//           images: {
-//             url: image.url,
-//             caption: image.caption
-//           }
-//         }
-//       },
-//       { new: true, useFindAndModify: false }
-//     );
-//   };

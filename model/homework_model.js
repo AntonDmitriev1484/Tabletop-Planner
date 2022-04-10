@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 const {model, Schema} = mongoose;
-
+import { pcourse_model, pcourse_schema } from "./pcourse_model.js";
 
 const homework_schema = new Schema(
   {
@@ -27,16 +27,15 @@ const homework_schema = new Schema(
         type: String
     },
     course: { //User should have posession over the immediate courses which it is taking, shouldn't be referenced
-        type: mongoose.Schema.Types.ObjectId,
+        //Should be of type personal course
+        type: pcourse_schema,
         required: "Course is required"
     }
     //Also add work_tag, files_links
     },
-    { 
-      collection: 'homework' 
-    }
+
 );
 
 
 const homework_model = model("homework_model", homework_schema);
-export default homework_model;
+export {homework_model, homework_schema};

@@ -20,16 +20,15 @@ const course_schema = new Schema(
             type: String,
             required: "Course code is required"
         },
-        description: {
+        official_description: {
             type: String
         },
         //Also add course_tag, files_links
     },
-    { 
-      collection: 'course' 
-    }
+
 );
 
+//https://mongoosejs.com/docs/subdocs.html
 
 const course_model = model("course_model", course_schema);
-export default course_model;
+export {course_model, course_schema};
