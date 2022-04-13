@@ -8,7 +8,7 @@ import {homework_model, homework_schema} from "./homework_model.js"
 import {pcourse_model, pcourse_schema} from "./pcourse_model.js"
 import {university_model, university_schema} from "./university_model.js" //Necessary to compile university_model before using it in index.js
 
-const user_schema = new Schema(
+let user_schema = new Schema(
   {
     date_time_created: { 
         type: Date, 
@@ -130,6 +130,12 @@ user_schema.virtual('full_name')
 //Could we possibly add a listener on the progress field of homework?
 
 
+// user_schema.methods.check_pass = function(pass_attempt) {
+//     //hashes the incoming password
+//     let hash = crypto.pbkdf2Sync(pass_attempt, this.salt, 1000, 64, `sha512`).toString(`hex`); 
+//     return this.pass_hash === hash; 
+// }
+
 user_schema.methods = {
 
     //Most importantly, mongoose lets us add a password validation function into the model object.
@@ -149,6 +155,7 @@ user_schema.methods = {
     //https://www.codementor.io/@prasadsaya/working-with-arrays-in-mongodb-16s303gkd3
 
 }
+console.log('From user_model.js: '+user_schema.methods.check_pass);
 
 const user_model = model("user_model", user_schema);
 

@@ -30,13 +30,18 @@ router.route('/test')
          }
     )
 
-router.route('/login')
-    // .post(
-    //     controller_functions.login_user
-    // )
+router.route('/register')
     .post(
         //Using post to create a new resource
         controller_functions.create_user
     )
+
+router.route('/auth') //Handles login/logout/cookies requests
+    .post( //Post is best for login as it is most secure
+        controller_functions.login_user
+    )
+    // .get(
+    //     controller_functions.logout_user
+    // )
 
 export {router}

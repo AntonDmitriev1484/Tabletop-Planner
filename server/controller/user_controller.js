@@ -1,7 +1,11 @@
 
 import mongoose from 'mongoose';
 let m = mongoose.models;
+
+import connect from '../../connect_mongo.js';
 import {user_model} from '../model/user_model.js'
+
+const mongo_cli = connect(); //Call connect to set up our connection to mongodb
 
 //All of these functions need to be async since we're using .save() on mongoose objects to the database
 const create_user = async (req,res) => {
@@ -33,9 +37,51 @@ const create_user = async (req,res) => {
     return res;
 }
 
-const login_user = (req,res) => {
+const login_user = async (req,res) => {
     
+    let username = req.body.username;
+    let pass_attempt = req.body.password;
+
+    //Need to query mongodb by username
+
+    let status = 200;
+    let response_message = "";
+    try {
+        let user = await user_model.findOne({"username": username}).exec();
+        //Note: left part of json should be wrapped in quotes "" to distinguish it from the variable
+        //Also, make sure to use .exec() to ACTUALLY EXECUTE THE FUCKING QUERY MORON
+
+
+        if (user) { //If we were able to find a user
+
+            if (user.check_pass(pass_attempt)){
+                status = 200;
+                response_message = "User logged in successfully";
+            }
+            else {
+                status = 201; //idk man
+                response_message = "User exists but password is incorrect";
+            }
+        }
+        else {
+            status = 202; //idk man
+            response_message = "User does not exist";
+        }
+
+    }
+    catch (err){
+        console.log(err);
+        status = 400; //Figure out error codes later
+        response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+    
+    }
+
+    res.status(status).json({message: response_message});
+    // let user = mongo_cli.user.find({username: username});
+
 }
+
+
 
 const controller_functions = {create_user, login_user};
 export {controller_functions};
