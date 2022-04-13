@@ -15,6 +15,11 @@ const user_schema = new Schema(
         default: Date.now 
     },
     username: { 
+        //At first, unique: true not being enforced. Steps to fix:
+        //db.user.drop()
+        //restart mongodb
+        //MongoDB takes some time to add indices for unique items
+        //If this field is already not unique in the collection then you need to drop the collection
         type: String,
         unique: true,
         required: "Username is required"
@@ -71,7 +76,7 @@ const user_schema = new Schema(
 //This will help our lookup for users via username be as efficient as possible
 //Use db.user.getIndexes() to see the currently active indexes for the user collection
 
-user_schema.index({username:1})
+user_schema.index({username:1},{unique:true});
 
 //Setting up virtual fields
 
@@ -146,6 +151,15 @@ user_schema.methods = {
 }
 
 const user_model = model("user_model", user_schema);
+
+// user_model.on('username', function(err) {
+//     if (err) {
+//         console.error('User index error: %s', err);
+//     } else {
+//         console.info('User indexing complete');
+//     }
+// });
+
 export {user_model};
 
 

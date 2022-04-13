@@ -25,7 +25,7 @@ mongoose.connection.on('error', () => {
 const app = express();
 const port = 3456;
 
-
+app.use(express.json()); //without this, req objects won't have an accessible body
 app.use(router);
 
 app.listen(port, (err) => {
