@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-const {model, Schema} = mongoose;
+// const {model, Schema} = mongoose;
 import { pcourse_model, pcourse_schema } from "./pcourse_model.js";
 
-const homework_schema = new Schema(
+const homework_schema = new mongoose.Schema(
   {
     date_time_created: { 
         type: Date,
@@ -37,5 +37,5 @@ const homework_schema = new Schema(
 );
 
 
-const homework_model = model("homework_model", homework_schema);
+const homework_model = mongoose.model("homework_model", homework_schema);
 export {homework_model, homework_schema};

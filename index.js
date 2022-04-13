@@ -1,18 +1,47 @@
-import user_model from "./model/user_model.js";
-import {homework_model, homework_schema} from "./model/homework_model.js";
+//import userModel from "./server/model/user_model.js";
+
+//const { course_model } = require("./server/model/course_model.js");
+
+// userModel = require("./server/model/user_model.js");
+// const {user_model} = userModel;
+
+
+// homeworkModel = require( "./server/model/homework_model.js");
+// const {homework_model, homework_schema}= homeworkModel;
 
 
 //Need to connect mongodb before running any code which interacts with the database
 //You can create your model objects beforehand, but mongodb must actually be connected for things like .save to work
 
 //We need the mongoose setup, not the mongodb setup
-import mongodb from "mongodb"
-const MongoClient = mongodb.MongoClient;
+//import mongodb from "mongodb"
+//const MongoClient = mongodb.MongoClient;
 
+
+// mongoose = require('mongoose');
 import mongoose from 'mongoose';
-import {course_model, course_schema} from "./model/course_model.js";
-import { university_model } from './model/university_model.js';
-import { pcourse_model, pcourse_schema } from "./model/pcourse_model.js";
+let m = mongoose.models;
+
+import {user_model} from "./server/model/user_model.js";
+
+//All models are automatically complied in the process of building the user model
+//Now, to access those other models we need to access them from the mongoose.models object
+//This object is just going to be called 'm'. We can access the fields of this object to get our model constructors.
+
+
+// import {homework_model, homework_schema} from "./server/model/homework_model.js";
+// import {course_model, course_schema} from "./model/course_model.js";
+// import { university_model } from './model/university_model.js';
+// import { pcourse_model, pcourse_schema } from "./model/pcourse_model.js";
+
+// courseModel = require ('./model/course_model.js');
+// const {course_model, course_schema} = courseModel;
+
+// universityModel = require ('./model/university_model.js');
+// const { university_model } = universityModel;
+
+// pcourseModel = require ('./model/pcourse_model.js');
+// const { pcourse_model, pcourse_schema } = pcourseModel;
 
 
 // const mongo_cli = new MongoClient("mongodb://localhost:27017/creative_project_db");
@@ -37,18 +66,18 @@ async function new_setup() {
   //Note. MongoDB automatically creates collections when a new model is instantiated
   //Still need to add the archive database things, figure out methods for dealing with that.
 
-  let university = new university_model();
+  let university = new m.university_model();
   university.name = "Washington University in St. Louis";
 
 
-  let course1 = new course_model();
+  let course1 = new m.course_model();
   course1.name = "Rapid Prototype Development";
   course1.dept_name = "Computer Science";
   course1.dept_code = "CSE";
   course1.course_code = "330S";
   course1.official_description = "Make fun projects";
 
-  let course2 = new course_model();
+  let course2 = new m.course_model();
   course2.name = "Quantum Computing";
   course2.dept_name = "Computer Science";
   course2.dept_code = "CSE";
@@ -62,31 +91,30 @@ async function new_setup() {
   
   await university.save();
 
-  let personal_course = new pcourse_model();
+  let personal_course = new m.pcourse_model();
   personal_course.course = course1; //Now 330 has been expanded as a personal course
   personal_course.tags = ['Wee', 'Woo'];
   personal_course.description = ['Wow this fucks, this is poggers as shit brother!!!'];
   personal_course.note = 'Cumfart prereq';
   personal_course.semester_taken = 7;
 
-  let personal_course2 = new pcourse_model();
+  let personal_course2 = new m.pcourse_model();
   personal_course2.course = course2; //Now 330 has been expanded as a personal course
   personal_course2.tags = ['Wee', 'Woo'];
   personal_course2.description = ['Wowdfasdfadbrother!!!'];
   personal_course2.note = 'Shitty prereq';
   personal_course2.semester_taken = 7;
 
-  let homework = new homework_model();
+  let homework = new m.homework_model();
   homework.progress = 50;
   homework.official_description = "asdfaefascvxcl";
   homework.note = "aefdf";
   homework.course = personal_course;
 
-  let user = new user_model();
+  let user = new user_model(); //can also probably be accessed as m.user_model()
 
 
-
-  user.username="timestamp man";
+  user.username="UniqueUser";
   user.full_name = "Anton Dmitriev";
   user.email = "a.dmitriev@wustl.edu";
   // user.firstName = "Anton";

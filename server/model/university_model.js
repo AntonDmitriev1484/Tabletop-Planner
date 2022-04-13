@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
-const {model, Schema} = mongoose;
+// const {model, Schema} = mongoose;
 
 import {course_model, course_schema} from "./course_model.js";
 
 
-const university_schema = new Schema(
+const university_schema = new mongoose.Schema(
   {
         name: { 
             type: String,
@@ -21,5 +21,5 @@ const university_schema = new Schema(
 
 //https://mongoosejs.com/docs/subdocs.html
 
-const university_model = model("unversity_model", university_schema);
-export {university_model};
+const university_model = mongoose.model("university_model", university_schema);
+export {university_model, university_schema};

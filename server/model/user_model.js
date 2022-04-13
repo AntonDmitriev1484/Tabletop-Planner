@@ -6,6 +6,7 @@ import { timeStamp } from "console";
 
 import {homework_model, homework_schema} from "./homework_model.js"
 import {pcourse_model, pcourse_schema} from "./pcourse_model.js"
+import {university_model, university_schema} from "./university_model.js"
 
 const user_schema = new Schema(
   {
@@ -16,10 +17,12 @@ const user_schema = new Schema(
     username: { //Might want to create a compound index. https://www.mongodb.com/docs/manual/indexes/
             //I'll just use the object_id index which mongodb provides and leave this for later
         type: String,
+        unique: true,
         required: "Username is required"
     },
     username_num_code: { //Discord style, adding a unique 4 digit code to each user, so that users can have the same username
         type: Number,
+        // required: "User numerical code is required"
     },
     email: {
         type: String,
@@ -65,6 +68,12 @@ const user_schema = new Schema(
       collection: 'user' 
     }
 );
+
+//Setting up our collection to be indexed by username
+//This will help our lookup for users via username be as efficient as possible
+//Use db.user.getIndexes() to see the currently active indexes for the user collection
+
+user_schema.index({username:1})
 
 //Setting up virtual fields
 
@@ -133,6 +142,13 @@ user_schema.methods = {
 
     },
 
+    //Don't want to create_user here, we only want to create user after we have verified data.email username password etc.
+    create_user: function(data) {
+        //data.email
+        //data.username
+        //data.password
+    }
+
     // update_homework: function (updated_homework) {
     //     //Rather than creating two objects, it'd be easier if I could pass the key value pair
     //     //which I want to update as the parameter, and then simply update that k-v pair in the object
@@ -153,6 +169,6 @@ user_schema.methods = {
 }
 
 const user_model = model("user_model", user_schema);
-export default user_model;
+export {user_model};
 
 
