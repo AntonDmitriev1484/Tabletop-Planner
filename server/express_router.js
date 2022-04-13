@@ -60,8 +60,9 @@ router.route('/auth') //Handles login/logout/cookies requests
 
 router.route('/user/:username/events')
         .post(controller_functions.add_event)
-        .delete(controller_functions.delete_unresolved_event);
-
+        .delete(controller_functions.delete_unresolved_event)
+        .put(controller_functions.update_event)
+        .get(controller_functions.read_unresolved_events)
         
 router.route('/user/:username')
 

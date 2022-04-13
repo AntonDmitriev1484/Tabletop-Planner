@@ -168,11 +168,89 @@ const delete_unresolved_event = async (req, res) => {
 
 }
 
+const update_event = async (req, res) => {
+
+  let status = 200;
+    let response_message = "";
+    try {
+        let user = await get_user(req.params.username);
+        if (user !== null) { //If we were able to find a user
+            const target_id = req.body._id;
+               //let result = await user_model.findOneAndDelete({"user.events_unresolved.id":target_id}).exec();
+            
+            let found = false;
+            
+            //Not super efficient, but starting from the user is probably more efficient
+            //than mongo starting from the root of the collection
+            //Linear search will be over at most 15 or so items since the list is activley maintained
+            for (let i = 0; i<user.events_unresolved.length; i++){
+                let event = user.events_unresolved[i];
+                if (event._id == target_id){
+                    found = true;
+                    user.events_unresolved[i] = req.body;
+                }
+            }
+
+            if (found) {
+                try {
+                    await user.save();
+                    status = 200; //idk man
+                    response_message = "Successfully updated event by _id";
+                }
+                catch (err) {
+                    console.log(err);
+                    status = 400; //Figure out error codes later
+                    response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+                }
+            }
+            else {
+                status = 201; //idk man
+                response_message = "Couldn't find event with this _id";
+            }
+
+        
+        }
+        else {
+            status = 202; //idk man
+            response_message = "User does not exist";
+        }
+    }
+    catch (err) {
+        console.log(err);
+        status = 400; //Figure out error codes later
+        response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+    }
+    res.status(status).json({message: response_message});
+}
 
 
 
+const read_unresolved_events = async (req, res) => {
+    let status = 200;
+    let response_message = "";
+    let content = "";
+    try {
+        let user = await get_user(req.params.username);
+        if (user !== null) { //If we were able to find a user
 
-
+            //res.body = user.events_unresolved;
+            status = 200;
+            response_message = "Returning all unresolved events for this user";
+            content = user.events_unresolved;
+        
+        }
+        else {
+            status = 202; //idk man
+            response_message = "User does not exist";
+        }
+    }
+    catch (err) {
+        console.log(err);
+        status = 400; //Figure out error codes later
+        response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+    }
+    res.status(status).json({message: response_message, events: content});
+}
 
 
 
@@ -191,7 +269,8 @@ async function get_user (username) {
 }
 
 
-const controller_functions = {create_user, login_user, add_event, delete_unresolved_event};
+const controller_functions = {create_user, login_user, add_event, 
+    delete_unresolved_event, update_event, read_unresolved_events};
 export {controller_functions};
 
 
