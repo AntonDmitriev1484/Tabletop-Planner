@@ -59,7 +59,8 @@ router.route('/auth') //Handles login/logout/cookies requests
 
 
 router.route('/user/:username/events')
-        .post(controller_functions.add_events);
+        .post(controller_functions.add_event)
+        .delete(controller_functions.delete_unresolved_event);
 
         
 router.route('/user/:username')

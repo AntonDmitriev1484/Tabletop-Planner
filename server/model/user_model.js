@@ -155,7 +155,7 @@ user_schema.methods = {
     //https://www.codementor.io/@prasadsaya/working-with-arrays-in-mongodb-16s303gkd3
 
 }
-console.log('From user_model.js: '+user_schema.methods.check_pass);
+
 
 const user_model = model("user_model", user_schema);
 
