@@ -1,58 +1,15 @@
-//import userModel from "./server/model/user_model.js";
-
-//const { course_model } = require("./server/model/course_model.js");
-
-// userModel = require("./server/model/user_model.js");
-// const {user_model} = userModel;
-
-
-// homeworkModel = require( "./server/model/homework_model.js");
-// const {homework_model, homework_schema}= homeworkModel;
-
-
 //Need to connect mongodb before running any code which interacts with the database
 //You can create your model objects beforehand, but mongodb must actually be connected for things like .save to work
-
 //We need the mongoose setup, not the mongodb setup
-//import mongodb from "mongodb"
-//const MongoClient = mongodb.MongoClient;
 
-
-// mongoose = require('mongoose');
 import mongoose from 'mongoose';
 let m = mongoose.models;
 
-import {user_model} from "./server/model/user_model.js";
 
-//All models are automatically complied in the process of building the user model
+import {user_model} from "./server/model/user_model.js";
+//All models are complied in the process of building the user model
 //Now, to access those other models we need to access them from the mongoose.models object
 //This object is just going to be called 'm'. We can access the fields of this object to get our model constructors.
-
-
-// import {homework_model, homework_schema} from "./server/model/homework_model.js";
-// import {course_model, course_schema} from "./model/course_model.js";
-// import { university_model } from './model/university_model.js';
-// import { pcourse_model, pcourse_schema } from "./model/pcourse_model.js";
-
-// courseModel = require ('./model/course_model.js');
-// const {course_model, course_schema} = courseModel;
-
-// universityModel = require ('./model/university_model.js');
-// const { university_model } = universityModel;
-
-// pcourseModel = require ('./model/pcourse_model.js');
-// const { pcourse_model, pcourse_schema } = pcourseModel;
-
-
-// const mongo_cli = new MongoClient("mongodb://localhost:27017/creative_project_db");
-// //Gives us a client through which we can now interact with mongodb
-
-// try {
-//     mongo_cli.connect();
-// }
-// catch (err){
-//     console.error(err);
-// }
 
 
 mongoose.Promise = global.Promise;
@@ -61,7 +18,74 @@ mongoose.connection.on('error', () => {
     throw new Error ('unable to connect to creative_project_db');
 })
 
-new_setup();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//new_setup();
 async function new_setup() {
   //Note. MongoDB automatically creates collections when a new model is instantiated
   //Still need to add the archive database things, figure out methods for dealing with that.
@@ -174,36 +198,20 @@ async function storage_test() {
 
   console.log('saved user');
 
-
-
-
-
-  // console.log(JSON.stringify(user));
-
-  
-
-  //markModified might be necessary if you're ever making changes to an array that's embedded within an object
-  // user.markModified('firstName');
-  
-  // user.markModified('lastName');
-  
-  // user.markModified('biography');
-
-
 }
 
 
 // f_test();
-// async function f_test() {
+async function f_test() {
 
-//   //can use the model object to create a query
-//   //then call .exect() to execute that query
-//   const result = await user_model.find({first_name:"Anton"}).exec();
+  //can use the model object to create a query
+  //then call .exect() to execute that query
+  const result = await user_model.find({first_name:"Anton"}).exec();
 
-//   const anton = result[0]; //Result returned an array of options which matched the query
-//   console.log(anton);
-//   console.log("Full name " +anton.full_name); //Just accessing the virtual field as though it actually exists
-//   console.log("Password attempt 1 "+anton.check_pass("password"));
-//   console.log("Password attempt 2 "+anton.check_pass("weaboo"));
-// }
+  const anton = result[0]; //Result returned an array of options which matched the query
+  console.log(anton);
+  console.log("Full name " +anton.full_name); //Just accessing the virtual field as though it actually exists
+  console.log("Password attempt 1 "+anton.check_pass("password"));
+  console.log("Password attempt 2 "+anton.check_pass("weaboo"));
+}
 

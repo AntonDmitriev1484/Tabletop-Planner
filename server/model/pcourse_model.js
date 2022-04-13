@@ -1,10 +1,6 @@
 
 import mongoose from "mongoose";
-// const {model, Schema} = mongoose;
 
-// console.log(mongoose.modelNames());
-
-// course_schema = require("course_model");
 import {course_model, course_schema} from "./course_model.js";
 
 //pcourse "personal course"

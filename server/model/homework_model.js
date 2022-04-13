@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-// const {model, Schema} = mongoose;
 import { pcourse_model, pcourse_schema } from "./pcourse_model.js";
 
 const homework_schema = new mongoose.Schema(
