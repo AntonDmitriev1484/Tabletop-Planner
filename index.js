@@ -5,6 +5,9 @@
 import mongoose from 'mongoose';
 let m = mongoose.models;
 
+import express from 'express';
+
+import {router} from './server/express_router.js';
 
 import {user_model} from "./server/model/user_model.js";
 //All models are complied in the process of building the user model
@@ -19,7 +22,19 @@ mongoose.connection.on('error', () => {
 })
 
 
+const app = express();
+const port = 3456;
 
+
+app.use(router);
+
+app.listen(port, (err) => {
+    if (err) {
+      console.log(err)
+      //console.log("Server listening on PORT: "+ port);
+    }
+  }
+);
 
 
 

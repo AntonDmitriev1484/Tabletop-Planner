@@ -1,13 +1,27 @@
 import express from 'express'
-import {user_controller} from './server/controller/user_controller.js'
+import {controller_functions} from './controller/user_controller.js'
 
 const router = express.Router();
 
+//Similar syntax to saying
+// router.get('/', (req, res) => {
+//     res.send('Birds home page')
+//   })
+
+router.route('/')
+    .get(
+        (req, res, next) => {
+           console.log("hello world express");
+           res.end;
+        }
+    )
 
 router.route('/login')
     .post(
-        user_controller.login_user
+        controller_functions.login_user
     )
     .put(
-        user_controller.create_user
+        controller_functions.create_user
     )
+
+export {router}
