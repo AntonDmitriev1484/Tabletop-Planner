@@ -1,4 +1,5 @@
 
+import res from 'express/lib/response.js';
 import mongoose from 'mongoose';
 let m = mongoose.models;
 
@@ -168,72 +169,76 @@ const delete_unresolved_event = async (req, res) => {
 
 }
 
+
 const update_event = async (req, res) => {
 
-  let status = 200;
-    let response_message = "";
-    try {
-        let user = await get_user(req.params.username);
-        if (user !== null) { //If we were able to find a user
-            const target_id = req.body._id;
-               //let result = await user_model.findOneAndDelete({"user.events_unresolved.id":target_id}).exec();
-            
-            let found = false;
-            
-            //Not super efficient, but starting from the user is probably more efficient
-            //than mongo starting from the root of the collection
-            //Linear search will be over at most 15 or so items since the list is activley maintained
-            for (let i = 0; i<user.events_unresolved.length; i++){
-                let event = user.events_unresolved[i];
-                if (event._id == target_id){
-                    found = true;
-                    user.events_unresolved[i] = req.body;
-                }
-            }
+    let status = 200;
+      let response_message = "";
+      try {
+          let user = await get_user(req.params.username);
+          if (user !== null) { //If we were able to find a user
+              const target_id = req.body._id;
+                 //let result = await user_model.findOneAndDelete({"user.events_unresolved.id":target_id}).exec();
+              
+              let found = false;
+              
+              //Not super efficient, but starting from the user is probably more efficient
+              //than mongo starting from the root of the collection
+              //Linear search will be over at most 15 or so items since the list is activley maintained
+              for (let i = 0; i<user.events_unresolved.length; i++){
+                  let event = user.events_unresolved[i];
+                  if (event._id == target_id){
+                      found = true;
+                      user.events_unresolved[i] = req.body;
+                  }
+              }
+  
+              if (found) {
+                  try {
+                      await user.save();
+                      status = 200; //idk man
+                      response_message = "Successfully updated event by _id";
+                  }
+                  catch (err) {
+                      console.log(err);
+                      status = 400; //Figure out error codes later
+                      response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+                  }
+              }
+              else {
+                  status = 201; //idk man
+                  response_message = "Couldn't find event with this _id";
+              }
+  
+          
+          }
+          else {
+              status = 202; //idk man
+              response_message = "User does not exist";
+          }
+      }
+      catch (err) {
+          console.log(err);
+          status = 400; //Figure out error codes later
+          response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+      }
+      res.status(status).json({message: response_message});
+  }
 
-            if (found) {
-                try {
-                    await user.save();
-                    status = 200; //idk man
-                    response_message = "Successfully updated event by _id";
-                }
-                catch (err) {
-                    console.log(err);
-                    status = 400; //Figure out error codes later
-                    response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
-                }
-            }
-            else {
-                status = 201; //idk man
-                response_message = "Couldn't find event with this _id";
-            }
-
-        
-        }
-        else {
-            status = 202; //idk man
-            response_message = "User does not exist";
-        }
-    }
-    catch (err) {
-        console.log(err);
-        status = 400; //Figure out error codes later
-        response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
-    }
-    res.status(status).json({message: response_message});
-}
 
 
 
 const read_unresolved_events = async (req, res) => {
-    let status = 200;
-    let response_message = "";
-    let content = "";
-    try {
-        let user = await get_user(req.params.username);
+
+    const username = req.params.username;
+
+    function func (user) { //When defined out here, the function gets our req and res objects from this scope
+        let status = 200;
+        let response_message = "";
+        let content = "";
+        
         if (user !== null) { //If we were able to find a user
 
-            //res.body = user.events_unresolved;
             status = 200;
             response_message = "Returning all unresolved events for this user";
             content = user.events_unresolved;
@@ -243,35 +248,144 @@ const read_unresolved_events = async (req, res) => {
             status = 202; //idk man
             response_message = "User does not exist";
         }
+
+        //return res.status(status).json({message: response_message, events: content});
+        res.status(status).json({message: response_message, events: content});
     }
-    catch (err) {
-        console.log(err);
-        status = 400; //Figure out error codes later
-        response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
-    }
-    res.status(status).json({message: response_message, events: content});
+
+    //res = run_func_on_user( username, res, func); //Confused lexical scoping
+
+    run_func_on_user( username, func);
+   //return  run_func_on_user( username, func);
+   return res
 }
 
 
-
-
 async function get_user (username) {
+    let user = await user_model.findOne({"username": username}).exec();
+    //Note: left part of json should be wrapped in quotes "" to distinguish it from the variable
+    //Also, make sure to use .exec() to ACTUALLY EXECUTE THE FUCKING QUERY MORON
+
+    if (user){
+        return user;
+    }
+    else {
+        return null;
+    }
+}
+
+
+//Dumb scoping experiment
+async function run_func_on_user (username, func) {
+
+    try {
         let user = await user_model.findOne({"username": username}).exec();
         //Note: left part of json should be wrapped in quotes "" to distinguish it from the variable
         //Also, make sure to use .exec() to ACTUALLY EXECUTE THE FUCKING QUERY MORON
+        func(user); //Need to pass in response object because scoping is being strange
 
-        if (user){
-            return user;
+    }
+    catch (err) {
+        console.log(err);
+        let status = 400; //Figure out error codes later
+        let response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+        res.status(status).json({message: response_message});
+    }
+        
+}
+
+//Dumb scoping experiment
+async function linear_search_unresolved_event (user, target_id, on_find){
+
+    let found = false;
+    
+    let event = "";
+
+
+    //Not super efficient, but starting from the user is probably more efficient
+    //than mongo starting from the root of the collection
+    //Linear search will be over at most 15 or so items since the list is activley maintained
+    for (let i = 0; i<user.events_unresolved.length; i++){
+        event = user.events_unresolved[i];
+        if (event._id == target_id){
+            found = true;
+            break;
         }
-        else {
-            return null;
-        }
+    }
+
+    if (found) {
+        await on_find(event);
+
+    }
+    else {
+        status = 201; //idk man
+        response_message = "Couldn't find event with this _id";
+
+    }
+
+    res.status(status).json({message: response_message});
 }
 
 
 const controller_functions = {create_user, login_user, add_event, 
     delete_unresolved_event, update_event, read_unresolved_events};
 export {controller_functions};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -308,4 +422,118 @@ export {controller_functions};
     
 //     }
 
+// }
+
+
+//Wasting time doing dumb scoping things
+
+// const update_event = async (req, res) => {
+
+
+//     async function func(user) { //Has req and res objects from external scope
+
+//         let status = 200;
+//         let response_message = "";
+
+        
+//         async function on_find( event){ //has req and res objects from grandparent scope, has user object from parent scope
+//             let status = 200;
+//             try {
+//                 //user.events_unresolved[i] = req.body;
+//                 event = req.body;
+//                 await user.save();
+//                 status = 200; //idk man
+//                 response_message = "Successfully updated event by _id";
+//             }
+//             catch (err) {
+//                 console.log(err);
+//                 status = 400; //Figure out error codes later
+//                 response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+//             }
+         
+//             res.status(status).json({message: response_message});
+//         }
+
+
+
+//         if (user !== null) { //If we were able to find a user
+//             await linear_search_unresolved_event(user, req.body._id, on_find);
+        
+//         }
+//         else {
+//             status = 202; //idk man
+//             response_message = "User does not exist";
+//         }
+
+//         res.status(status).json({message: response_message});
+
+//     }
+
+//     await run_func_on_user(req.params.username, res, func);
+    
+//     return res;
+
+//     // res = run_func_on_user(req.params.username, res, async (user, res) => {
+//     //     let status = 200;
+//     //     let response_message = "";
+
+//     //     if (user !== null) { //If we were able to find a user
+//     //         // const target_id = req.body._id;  
+//     //         // let found = false;
+            
+//     //         // //Not super efficient, but starting from the user is probably more efficient
+//     //         // //than mongo starting from the root of the collection
+//     //         // //Linear search will be over at most 15 or so items since the list is activley maintained
+//     //         // for (let i = 0; i<user.events_unresolved.length; i++){
+//     //         //     let event = user.events_unresolved[i];
+//     //         //     if (event._id == target_id){
+//     //         //         found = true;
+//     //         //         user.events_unresolved[i] = req.body;
+//     //         //     }
+//     //         // }
+
+//     //         // if (found) {
+//     //         //     try {
+//     //         //         await user.save();
+//     //         //         status = 200; //idk man
+//     //         //         response_message = "Successfully updated event by _id";
+//     //         //     }
+//     //         //     catch (err) {
+//     //         //         console.log(err);
+//     //         //         status = 400; //Figure out error codes later
+//     //         //         response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+//     //         //     }
+//     //         // }
+//     //         // else {
+//     //         //     status = 201; //idk man
+//     //         //     response_message = "Couldn't find event with this _id";
+//     //         // }
+
+//     //         const on_find = async () => {
+//     //             try {
+//     //                 user.events_unresolved[i] = req.body;
+//     //                 await user.save();
+//     //                 status = 200; //idk man
+//     //                 response_message = "Successfully updated event by _id";
+//     //             }
+//     //             catch (err) {
+//     //                 console.log(err);
+//     //                 status = 400; //Figure out error codes later
+//     //                 response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+//     //             }
+//     //         }
+
+//     //         linear_search_unresolved_event(user, req.body._id, on_find)
+        
+//     //     }
+//     //     else {
+//     //         status = 202; //idk man
+//     //         response_message = "User does not exist";
+//     //     }
+
+//     //     return res.status(status).json({message: response_message});
+//     // })
+
+    
+//     //return res;
 // }
