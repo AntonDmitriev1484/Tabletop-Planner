@@ -7,8 +7,11 @@ import {course_model, course_schema} from "./course_model.js";
 
 const pcourse_schema = new mongoose.Schema(
   {
-        course: course_schema,
-    
+        course: {
+            type:course_schema,
+            required: true
+        },
+
         tags: [],
 
         description: {

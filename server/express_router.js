@@ -44,4 +44,26 @@ router.route('/auth') //Handles login/logout/cookies requests
     //     controller_functions.logout_user
     // )
 
+
+//Here :username is a route parameter
+//We will use the unique username passed in the url, to retreive the proper
+//user model from our mongodb user collection
+//https://expressjs.com/en/guide/routing.html helps a lot
+
+//https://www.geeksforgeeks.org/express-js-router-param-function/
+//We can set up a callback function for each time a specific parameter like :username
+//appears in the url
+// router.param('username', 
+// controller_functions.user_parameter_callback
+// )
+
+
+router.route('/user/:username/events')
+        .post(controller_functions.add_events);
+
+        
+router.route('/user/:username')
+
+
+
 export {router}
