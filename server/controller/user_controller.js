@@ -275,6 +275,346 @@ async function get_user (username) {
 }
 
 
+
+const add_course = async (req, res) => {
+    let status = 200;
+    let response_message = "";
+    try {
+        let user = await get_user(req.params.username);
+        if (user !== null) { //If we were able to find a user
+
+            let pcourse = new m.pcourse_model(req.body);
+            user.courses_current.push(pcourse);
+
+            try {
+                await user.save();
+                status = 200;
+                response_message = "Course added to this user successfully";
+            }
+            catch (err) {
+                console.log(err);
+                status = 400; //Figure out error codes later
+                response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+            }
+        }
+        else {
+            status = 201; //idk man
+            response_message = "User does not exist";
+        }
+    }
+    catch (err) {
+        console.log(err);
+        status = 400; //Figure out error codes later
+        response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+    }
+
+    res.status(status).json({message: response_message});
+}
+
+
+const read_courses = async (req, res) => {
+
+    const username = req.params.username;
+
+    function func (user) { //When defined out here, the function gets our req and res objects from this scope
+        let status = 200;
+        let response_message = "";
+        let content = "";
+        
+        if (user !== null) { //If we were able to find a user
+
+            status = 200;
+            response_message = "Returning all current courses for this user";
+            content = user.courses_current;
+        
+        }
+        else {
+            status = 202; //idk man
+            response_message = "User does not exist";
+        }
+
+        res.status(status).json({message: response_message, courses: content});
+    }
+
+    run_func_on_user( username, func);
+   return res
+}
+
+
+const update_course = async (req, res) => {
+
+    let status = 200;
+      let response_message = "";
+      try {
+          let user = await get_user(req.params.username);
+          if (user !== null) { //If we were able to find a user
+              const target_id = req.body._id;
+                 //let result = await user_model.findOneAndDelete({"user.events_unresolved.id":target_id}).exec();
+              
+              let found = false;
+
+              for (let i = 0; i<user.courses_current.length; i++){
+                  let event = user.courses_current[i];
+                  if (event._id == target_id){
+                      found = true;
+                      user.courses_current[i] = req.body;
+                  }
+              }
+  
+              if (found) {
+                  try {
+                      await user.save();
+                      status = 200; //idk man
+                      response_message = "Successfully updated course by _id";
+                  }
+                  catch (err) {
+                      console.log(err);
+                      status = 400; //Figure out error codes later
+                      response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+                  }
+              }
+              else {
+                  status = 201; //idk man
+                  response_message = "Couldn't find event with this _id";
+              }
+          }
+          else {
+              status = 202; //idk man
+              response_message = "User does not exist";
+          }
+      }
+      catch (err) {
+          console.log(err);
+          status = 400; //Figure out error codes later
+          response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+      }
+      res.status(status).json({message: response_message});
+  }
+
+
+  const delete_course = async (req, res) => {
+
+    let status = 200;
+    let response_message = "";
+    try {
+        let user = await get_user(req.params.username);
+        if (user !== null) { //If we were able to find a user
+            const target_id = req.body._id;
+               //let result = await user_model.findOneAndDelete({"user.events_unresolved.id":target_id}).exec();
+            
+            let found = false;
+            for (let i = 0; i<user.courses_current.length; i++){
+                let event = user.courses_current[i];
+                if (event._id == target_id){
+                    found = true;
+                    user.courses_current.splice(i,1);
+                }
+            }
+
+            if (found) {
+                try {
+                    await user.save();
+                    status = 200; //idk man
+                    response_message = "Successfully removed course by _id";
+                }
+                catch (err) {
+                    console.log(err);
+                    status = 400; //Figure out error codes later
+                    response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+                }
+            }
+            else {
+                status = 201; //idk man
+                response_message = "Couldn't find event with this _id";
+            }
+
+        
+        }
+        else {
+            status = 202; //idk man
+            response_message = "User does not exist";
+        }
+    }
+    catch (err) {
+        console.log(err);
+        status = 400; //Figure out error codes later
+        response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+    }
+    res.status(status).json({message: response_message});
+
+}
+
+
+const read_userinfo = async (req, res) => {
+
+    //Will exclude things like pass_hash from the res json, but will send everything else
+
+    const username = req.params.username;
+
+    function func (user) { //When defined out here, the function gets our req and res objects from this scope
+        let status = 200;
+        let response_message = "";
+        let content = "";
+        
+        if (user !== null) { //If we were able to find a user
+
+            status = 200;
+            response_message = "Returning all current courses for this user";
+            content = {
+                "username" : user.username,
+                "email": user.email,
+                "date_time_created": user.date_time_created
+            };
+        
+        }
+        else {
+            status = 202; //idk man
+            response_message = "User does not exist";
+        }
+
+        res.status(status).json({message: response_message, user_info: content});
+    }
+
+    run_func_on_user( username, func);
+   return res
+}
+
+
+//Doesn't really do ANYTHING
+//Might add more functionality to this as I build the game aspect
+const update_userinfo = async (req, res) => {
+
+    let status = 200;
+      let response_message = "";
+      try {
+          let user = await get_user(req.params.username);
+          if (user !== null) { //If we were able to find a user
+              const target_id = req.body._id;
+                 
+              let found = true;
+
+              //user.email = req.body.emal;
+  
+              if (found) {
+                  try {
+                      await user.save();
+                      status = 200; //idk man
+                      response_message = "Successfully updated user";
+                  }
+                  catch (err) {
+                      console.log(err);
+                      status = 400; //Figure out error codes later
+                      response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+                  }
+              }
+              else {
+                  status = 201; //idk man
+                  response_message = "Couldn't find event with this _id";
+              }
+          }
+          else {
+              status = 202; //idk man
+              response_message = "User does not exist";
+          }
+      }
+      catch (err) {
+          console.log(err);
+          status = 400; //Figure out error codes later
+          response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+      }
+      res.status(status).json({message: response_message});
+  }
+
+
+  const delete_user = async (req, res) => {
+
+    let status = 200;
+    let response_message = "";
+    // try {
+    //     let user = await get_user(req.params.username);
+
+        try {
+            await user_model.findOneAndDelete({"username":req.params.username}).exec();
+
+            status = 200; //idk man
+            response_message = "Successfully deleted user";
+        }
+        catch (err) {
+            console.log(err);
+            status = 400; //Figure out error codes later
+            response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+        }
+
+
+        res.status(status).json({message: response_message});
+
+}
+
+
+
+const controller_functions = {create_user, login_user, add_event, 
+    delete_unresolved_event, update_event, read_unresolved_events, 
+    add_course, read_courses, update_course, delete_course,
+    read_userinfo, update_userinfo, delete_user};
+export {controller_functions};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //Dumb scoping experiment
 async function run_func_on_user (username, func) {
 
@@ -327,9 +667,6 @@ async function linear_search_unresolved_event (user, target_id, on_find){
 }
 
 
-const controller_functions = {create_user, login_user, add_event, 
-    delete_unresolved_event, update_event, read_unresolved_events};
-export {controller_functions};
 
 
 

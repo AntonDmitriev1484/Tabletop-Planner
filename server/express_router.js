@@ -66,6 +66,18 @@ router.route('/user/:username/events')
         
 router.route('/user/:username')
 
+router.route('/user/:username/courses') //'course' used here, will be dealing with pcourse objects in mongodb
+        .post(controller_functions.add_course)
+        .get(controller_functions.read_courses)
+        .put(controller_functions.update_course)
+        .delete(controller_functions.delete_course);
+        //should also feature a request / some way to archive a course
+
+
+router.route('/user/:username')
+        .get(controller_functions.read_userinfo)
+        .put(controller_functions.update_userinfo)
+        .delete(controller_functions.delete_user);
 
 
 export {router}

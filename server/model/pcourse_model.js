@@ -26,9 +26,7 @@ const pcourse_schema = new mongoose.Schema(
             type: Number,
 
         },
-        description: {
-            type: String
-        }
+
     },
 
 );
