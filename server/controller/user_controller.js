@@ -10,6 +10,10 @@ import {event_archive_model, event_archive_schema} from "../model/event_archive_
 
 const mongo_cli = connect(); //Call connect to set up our connection to mongodb
 
+
+let session = "";
+
+
 //All of these functions need to be async since we're using .save() on mongoose objects to the database
 const create_user = async (req,res) => {
     //Assuming that the body of the request will be formatted in the way we need it
@@ -65,10 +69,15 @@ const login_user = async (req,res) => {
     try {
         let user = await get_user(username);
 
+
         if (user !== null) { //If we were able to find a user
 
             if (user.check_pass(pass_attempt)){
                 status = 200;
+                session=req.session;
+                session.username=req.body.username;
+                //On login we set username in the session object
+
                 response_message = "User logged in successfully";
             }
             else {
@@ -90,6 +99,28 @@ const login_user = async (req,res) => {
     }
 
     res.status(status).json({message: response_message});
+
+}
+
+//SESSION AUTHENTICATION MIDDLEWARE
+//protects the endpoints that we need to be behind login
+const check_session = (req, res, next) => {
+    console.log('in middleware');
+    if (session.username === req.params.username){
+        next()
+    }
+    else {
+        return res.status(400).json({message:"You are not authorized to manipulate this user's information"});
+    }
+}
+
+const logout_user = (req, res) => {
+    //Will just clear the username field of our session
+    req.session.username = "";
+    session.username = "";
+    req.session.destroy();
+
+    return res.status(200).json({message:"User has successfully been logged out"});
 
 }
 
@@ -576,7 +607,8 @@ const update_userinfo = async (req, res) => {
 const controller_functions = {create_user, login_user, add_event, 
     delete_unresolved_event, update_event, read_unresolved_events, 
     add_course, read_courses, update_course, delete_course,
-    read_userinfo, update_userinfo, delete_user};
+    read_userinfo, update_userinfo, delete_user, check_session, 
+    logout_user};
 export {controller_functions};
 
 

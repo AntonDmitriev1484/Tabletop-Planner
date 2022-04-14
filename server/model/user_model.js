@@ -150,13 +150,13 @@ user_schema.methods = {
     archive_event: async function(target) {
         const event_archive_id = this.event_archive;
 
-        let event_archive = await event_archive_model.find({"_id":event_archive_id}).exec();
+        let event_archive = await event_archive_model.findOne({"_id":event_archive_id}).exec();
         
-        console.log(event_archive[0]); //Not the slightest clue why its a fucking array
-        console.log(event_archive[0].past_events);
+        // console.log(event_archive); //Not the slightest clue why its a fucking array
+        // console.log(event_archive.past_events);
 
-        event_archive[0].past_events.push(target);
-        await event_archive[0].save();
+        event_archive.past_events.push(target);
+        await event_archive.save();
     }
 
     // add_homework: function(homework) {

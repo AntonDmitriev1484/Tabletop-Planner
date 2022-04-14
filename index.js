@@ -7,6 +7,9 @@ let m = mongoose.models;
 
 import express from 'express';
 
+import session from 'express-session';
+//import cookieParser from 'cookie-parser';
+
 import {router} from './server/express_router.js';
 
 import {user_model} from "./server/model/user_model.js";
@@ -26,12 +29,23 @@ const app = express();
 const port = 3456;
 
 app.use(express.json()); //without this, req objects won't have an accessible body
+
+console.log(session);
+//let session_conf = session.Session;
+app.use(
+  session({ 
+    secret: "supersecretsecrettime"
+  })
+);
+//Now each request will have a session object
+
+//app.use(cookieParser); //Like express.json() but using it to read session cookies
+
 app.use(router);
 
 app.listen(port, (err) => {
     if (err) {
       console.log(err)
-      //console.log("Server listening on PORT: "+ port);
     }
   }
 );

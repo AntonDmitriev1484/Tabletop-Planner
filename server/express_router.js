@@ -8,27 +8,27 @@ const router = express.Router();
 //     res.send('Birds home page')
 //   })
 
-router.route('/test')
-    .get(
-        (req, res, next) => {
-           console.log("hello world express");
+// router.route('/test')
+//     .get(
+//         (req, res, next) => {
+//            console.log("hello world express");
         
            
-           return res.status(200).json({
-               message: "Hello world express from the ec2"
-           })
-        }
-    )
-    .post(
-        (req, res, next) => {
-            console.log("hello world express");
-            console.log(req);
+//            return res.status(200).json({
+//                message: "Hello world express from the ec2"
+//            })
+//         }
+//     )
+//     .post(
+//         (req, res, next) => {
+//             console.log("hello world express");
+//             console.log(req);
             
-            return res.status(200).json({
-                message: "Hello world express from the ec2"
-            })
-         }
-    )
+//             return res.status(200).json({
+//                 message: "Hello world express from the ec2"
+//             })
+//          }
+//     )
 
 router.route('/register')
     .post(
@@ -40,9 +40,11 @@ router.route('/auth') //Handles login/logout/cookies requests
     .post( //Post is best for login as it is most secure
         controller_functions.login_user
     )
-    // .get(
-    //     controller_functions.logout_user
-    // )
+        
+router.route('/user/:username/logout')
+    .get(
+        controller_functions.logout_user
+    )
 
 
 //Here :username is a route parameter
@@ -59,25 +61,24 @@ router.route('/auth') //Handles login/logout/cookies requests
 
 
 router.route('/user/:username/events')
-        .post(controller_functions.add_event)
-        .delete(controller_functions.delete_unresolved_event)
-        .put(controller_functions.update_event)
-        .get(controller_functions.read_unresolved_events)
-        
-router.route('/user/:username')
+        .post(controller_functions.check_session, controller_functions.add_event)
+        .delete(controller_functions.check_session, controller_functions.delete_unresolved_event)
+        .put(controller_functions.check_session, controller_functions.update_event)
+        .get(controller_functions.check_session, controller_functions.read_unresolved_events)
+
 
 router.route('/user/:username/courses') //'course' used here, will be dealing with pcourse objects in mongodb
-        .post(controller_functions.add_course)
-        .get(controller_functions.read_courses)
-        .put(controller_functions.update_course)
-        .delete(controller_functions.delete_course);
+        .post(controller_functions.check_session, controller_functions.add_course)
+        .get(controller_functions.check_session, controller_functions.read_courses)
+        .put(controller_functions.check_session, controller_functions.update_course)
+        .delete(controller_functions.check_session, controller_functions.delete_course);
         //should also feature a request / some way to archive a course
 
 
 router.route('/user/:username')
-        .get(controller_functions.read_userinfo)
-        .put(controller_functions.update_userinfo)
-        .delete(controller_functions.delete_user);
+        .get(controller_functions.read_userinfo) //Get user doesnt really need authentification since it provides so little information
+        .put(controller_functions.check_session, controller_functions.update_userinfo)
+        .delete(controller_functions.check_session, controller_functions.delete_user);
 
 
 export {router}
