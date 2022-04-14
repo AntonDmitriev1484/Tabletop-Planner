@@ -5,6 +5,8 @@ let m = mongoose.models;
 
 import connect from '../../connect_mongo.js';
 import {user_model} from '../model/user_model.js'
+import {event_archive_model, event_archive_schema} from "../model/event_archive_model.js"
+
 
 const mongo_cli = connect(); //Call connect to set up our connection to mongodb
 
@@ -17,15 +19,28 @@ const create_user = async (req,res) => {
     //     password: 12345 //Password DOES get set like this, even as a virtual field
     // }
 
-    let user = new user_model(req.body);
-
     let status = 200;
     let response_message = "";
+    
+    let event_archive = new event_archive_model();
 
     try {
-        await user.save();
-        status = 200;
-        response_message = "User has been successfully created"
+        await event_archive.save();
+        let user = new user_model(req.body);
+        //Gives each new user a ref to their event_archive
+        user.event_archive = event_archive.id;
+    
+    
+        try {
+            await user.save();
+            status = 200;
+            response_message = "User has been successfully created"
+        }
+        catch (err){
+            console.log(err);
+            status = 400; //Figure out error codes later
+            response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+        }
     }
     catch (err){
         console.log(err);
@@ -188,9 +203,15 @@ const update_event = async (req, res) => {
               for (let i = 0; i<user.events_unresolved.length; i++){
                   let event = user.events_unresolved[i];
                   if (event._id == target_id){
-                      found = true;
-                      user.events_unresolved[i] = req.body;
-                  }
+                        found = true;
+                        if (req.body.progress < 100){
+                            event = req.body;
+                        }
+                        else {
+                            user.events_unresolved.splice(i,1);
+                            user.archive_event(event);
+                        }
+                   }
               }
   
               if (found) {

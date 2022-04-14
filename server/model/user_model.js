@@ -7,6 +7,8 @@ import { timeStamp } from "console";
 import {homework_model, homework_schema} from "./homework_model.js"
 import {pcourse_model, pcourse_schema} from "./pcourse_model.js"
 import {university_model, university_schema} from "./university_model.js" //Necessary to compile university_model before using it in index.js
+import {event_archive_model, event_archive_schema} from "./event_archive_model.js"
+
 
 let user_schema = new Schema(
   {
@@ -55,13 +57,13 @@ let user_schema = new Schema(
     //This can probably stay as an array because at any given time you will have less than 20 homework assignments
     //Unresolved events will be embedded, to decrease look-up times for that week
 
-    events_archived: {type: mongoose.Schema.ObjectId},
+    event_archive: {type: mongoose.Schema.ObjectId},
 
     courses_current: [
         pcourse_schema
     ],
 
-    course_archived: {type: mongoose.Schema.ObjectId},
+    course_archive: {type: mongoose.Schema.ObjectId},
 
     university: {type: mongoose.Schema.ObjectId},
 
@@ -145,11 +147,23 @@ user_schema.methods = {
         return this.pass_hash === hash; 
     },
 
-    add_homework: function(homework) {
-        //Expected parameter is a homework model object
-        this.events_unresolved.push(homework);
+    archive_event: async function(target) {
+        const event_archive_id = this.event_archive;
 
-    },
+        let event_archive = await event_archive_model.find({"_id":event_archive_id}).exec();
+        
+        console.log(event_archive[0]); //Not the slightest clue why its a fucking array
+        console.log(event_archive[0].past_events);
+
+        event_archive[0].past_events.push(target);
+        await event_archive[0].save();
+    }
+
+    // add_homework: function(homework) {
+    //     //Expected parameter is a homework model object
+    //     this.events_unresolved.push(homework);
+
+    // },
 
     //MongoDB model objects already provide an updateOne function
     //https://www.codementor.io/@prasadsaya/working-with-arrays-in-mongodb-16s303gkd3
