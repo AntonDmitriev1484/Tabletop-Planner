@@ -22,7 +22,7 @@ const course_schema = new mongoose.Schema(
             type: String,
             required: "Course code is required"
         },
-        official_description: {
+        description: {
             type: String
         },
         //Also add course_tag, files_links

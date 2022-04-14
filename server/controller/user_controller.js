@@ -6,6 +6,7 @@ let m = mongoose.models;
 import connect from '../../connect_mongo.js';
 import {user_model} from '../model/user_model.js'
 import {event_archive_model, event_archive_schema} from "../model/event_archive_model.js"
+import {university_model, university_schema} from "../model/university_model.js"
 
 
 const mongo_cli = connect(); //Call connect to set up our connection to mongodb
@@ -578,7 +579,7 @@ const update_userinfo = async (req, res) => {
   }
 
 
-  const delete_user = async (req, res) => {
+const delete_user = async (req, res) => {
 
     let status = 200;
     let response_message = "";
@@ -602,13 +603,129 @@ const update_userinfo = async (req, res) => {
 
 }
 
+const define_university = async (req, res) => {
+    // let university_name = req.params.universityname;
+    let university = university_model(req.body);
+    let status  = 200;
+    let message = "";
+
+    try {
+            await university.save();
+            status = 200;
+            message = "University has been successfully created";
+
+        }
+        catch (err){
+            console.log(err);
+            status = 400; //Figure out error codes later
+            message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+        
+    }
+
+    res.status(status).json({ "message":message});
+    return res;
+}
+
+const read_university_info = async (req,res) => {
+    let university_name = req.params.universityname;
+    let status = 200;
+    let body = {message:"", content:""};
+
+
+    let model = university_model;
+
+    query = {"university_name":university_name};
+
+
+    const found = (university) => {
+        body.content = university;
+        status = 200; //idk man
+        body.message = "Returning all information about this university";
+    }
+
+    const not_found = (err) => {
+        console.log(err);
+        status = 400; //Figure out error codes later
+        body.message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+    }
+
+    await fetch_from_db(model, query, found, not_found);
+
+    res.status(status).json(body);
+}
+
+
+const create_course_for_university = async (req,res) => {
+    let university_name = req.params.universityname;
+    let status = 200;
+    let body = {message:""};
+
+
+    let model = university_model;
+
+    console.log(university_name);
+    const query = {"name":university_name};
+
+
+    const found = async (university) => {
+
+        let course = m.course_model(req.body);
+        university.courses.push(course);
+
+        status = 200; //idk man
+        body.message = "Course has successfully been added to this university";
+    }
+
+    const not_found = (err) => {
+        console.log(err);
+        status = 400; //Figure out error codes later
+        body.message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+    }
+
+    await fetch_from_db(model, query, found, not_found);
+
+    res.status(status).json(body);
+}
+
+
+
+
+
+
+const fetch_from_db = async (model, query, found, not_found) => {
+    try {
+         let data = await model.findOne(query);
+         found(data);
+         try {
+            await data.save();
+         }
+         catch (err) {
+             console.log(err);
+         }
+    }
+    catch (err) {
+        not_found(err);
+    }
+}
+
+
+const generic_read = async() => {
+    let status = 200;
+    let body = {message:"", content:""};
+
+    
+
+
+
+    res.status(status).json(body);
+}
 
 
 const controller_functions = {create_user, login_user, add_event, 
     delete_unresolved_event, update_event, read_unresolved_events, 
     add_course, read_courses, update_course, delete_course,
     read_userinfo, update_userinfo, delete_user, check_session, 
-    logout_user};
+    logout_user, read_university_info, create_course_for_university, define_university};
 export {controller_functions};
 
 

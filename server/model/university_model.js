@@ -8,6 +8,7 @@ const university_schema = new mongoose.Schema(
   {
         name: { 
             type: String,
+            unique: true,
             required: "University name is required"
         },
         courses: [

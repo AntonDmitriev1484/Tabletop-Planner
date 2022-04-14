@@ -81,4 +81,15 @@ router.route('/user/:username')
         .delete(controller_functions.check_session, controller_functions.delete_user);
 
 
+
+//To add a new university to the database
+router.route('/university')
+        .post(controller_functions.define_university);
+
+//Users will input their university name to see what courses they have available to them
+router.route('/university/:universityname/courselist')
+        .get(controller_functions.read_university_info)
+        .post(controller_functions.create_course_for_university)
+        .delete()
+
 export {router}
