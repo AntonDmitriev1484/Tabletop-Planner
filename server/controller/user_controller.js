@@ -60,8 +60,14 @@ const create_user = async (req,res) => {
 
 const login_user = async (req,res) => {
     
-    let username = req.body.username;
-    let pass_attempt = req.body.password;
+    // console.log("received json: ");
+    // console.log(req.header);
+    // console.log(req.body);
+
+    // let username = req.body.username;
+    // let pass_attempt = req.body.password;
+
+    // console.log(username+" "+pass_attempt);
 
     //Need to query mongodb by username
 
