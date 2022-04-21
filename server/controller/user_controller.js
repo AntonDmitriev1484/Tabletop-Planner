@@ -26,6 +26,7 @@ const create_user = async (req,res) => {
 
     let status = 200;
     let response_message = "";
+    let success = false;
     
     let event_archive = new event_archive_model();
 
@@ -39,6 +40,7 @@ const create_user = async (req,res) => {
         try {
             await user.save();
             status = 200;
+            success = true;
             response_message = "User has been successfully created"
         }
         catch (err){
@@ -54,7 +56,12 @@ const create_user = async (req,res) => {
     }
 
     //https://expressjs.com/en/4x/api.html#res.json
-    res.status(status).json({ message: response_message});
+    if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+        res.status(status).json({message: response_message,  success: true});
+    }
+    else {
+        res.status(status).json({message: response_message,  success: false});
+    }
     return res;
 }
 
@@ -66,6 +73,7 @@ const login_user = async (req,res) => {
 
     let username = req.body.username;
     let pass_attempt = req.body.password;
+    let success = false;
 
     // console.log(username+" "+pass_attempt);
 
@@ -83,6 +91,7 @@ const login_user = async (req,res) => {
                 status = 200;
                 session=req.session;
                 session.username=req.body.username;
+                success = true;
                 //On login we set username in the session object
 
                 response_message = "User logged in successfully";
@@ -105,7 +114,12 @@ const login_user = async (req,res) => {
     
     }
 
-    res.status(status).json({message: response_message});
+    if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+        res.status(status).json({message: response_message,  success: true});
+    }
+    else {
+        res.status(status).json({message: response_message,  success: false});
+    }
 
 }
 
@@ -127,7 +141,7 @@ const logout_user = (req, res) => {
     session.username = "";
     req.session.destroy();
 
-    return res.status(200).json({message:"User has successfully been logged out"});
+    return res.status(200).json({message:"User has successfully been logged out", success: true});
 
 }
 
@@ -135,6 +149,8 @@ const add_event = async (req,res) => {
 
     let status = 200;
     let response_message = "";
+    let success = false;
+
     try {
         let user = await get_user(req.params.username);
         if (user !== null) { //If we were able to find a user
@@ -146,6 +162,7 @@ const add_event = async (req,res) => {
                 await user.save();
                 status = 200;
                 response_message = "Event added to planner successfully";
+                success = true;
             }
             catch (err) {
                 console.log(err);
@@ -163,13 +180,20 @@ const add_event = async (req,res) => {
         status = 400; //Figure out error codes later
         response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
     }
-    res.status(status).json({message: response_message});
+    if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+        res.status(status).json({message: response_message,  success: true});
+    }
+    else {
+        res.status(status).json({message: response_message,  success: false});
+    }
 }
 
 const delete_unresolved_event = async (req, res) => {
 
     let status = 200;
     let response_message = "";
+    let success = false;
+
     try {
         let user = await get_user(req.params.username);
         if (user !== null) { //If we were able to find a user
@@ -193,6 +217,7 @@ const delete_unresolved_event = async (req, res) => {
                 try {
                     await user.save();
                     status = 200; //idk man
+                    success = true;
                     response_message = "Successfully removed event by _id";
                 }
                 catch (err) {
@@ -218,7 +243,12 @@ const delete_unresolved_event = async (req, res) => {
         status = 400; //Figure out error codes later
         response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
     }
-    res.status(status).json({message: response_message});
+    if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+        res.status(status).json({message: response_message,  success: true});
+    }
+    else {
+        res.status(status).json({message: response_message,  success: false});
+    }
 
 }
 
@@ -227,6 +257,7 @@ const update_event = async (req, res) => {
 
     let status = 200;
       let response_message = "";
+      let success = false;
       try {
           let user = await get_user(req.params.username);
           if (user !== null) { //If we were able to find a user
@@ -256,6 +287,7 @@ const update_event = async (req, res) => {
                   try {
                       await user.save();
                       status = 200; //idk man
+                      success = true;
                       response_message = "Successfully updated event by _id";
                   }
                   catch (err) {
@@ -281,7 +313,12 @@ const update_event = async (req, res) => {
           status = 400; //Figure out error codes later
           response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
       }
-      res.status(status).json({message: response_message});
+      if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+        res.status(status).json({message: response_message,  success: true});
+    }
+    else {
+        res.status(status).json({message: response_message,  success: false});
+    }
   }
 
 
@@ -290,6 +327,7 @@ const update_event = async (req, res) => {
 const read_unresolved_events = async (req, res) => {
 
     const username = req.params.username;
+    let success = false;
 
     function func (user) { //When defined out here, the function gets our req and res objects from this scope
         let status = 200;
@@ -299,6 +337,7 @@ const read_unresolved_events = async (req, res) => {
         if (user !== null) { //If we were able to find a user
 
             status = 200;
+            success = true;
             response_message = "Returning all unresolved events for this user";
             content = user.events_unresolved;
         
@@ -309,7 +348,12 @@ const read_unresolved_events = async (req, res) => {
         }
 
         //return res.status(status).json({message: response_message, events: content});
-        res.status(status).json({message: response_message, events: content});
+        if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+            res.status(status).json({message: response_message, events: content, success: true});
+        }
+        else {
+            res.status(status).json({message: response_message, events: content, success: false});
+        }
     }
 
     //res = run_func_on_user( username, res, func); //Confused lexical scoping
@@ -338,6 +382,7 @@ async function get_user (username) {
 const add_course = async (req, res) => {
     let status = 200;
     let response_message = "";
+    let success = false;
     try {
         let user = await get_user(req.params.username);
         if (user !== null) { //If we were able to find a user
@@ -348,6 +393,7 @@ const add_course = async (req, res) => {
             try {
                 await user.save();
                 status = 200;
+                success = true;
                 response_message = "Course added to this user successfully";
             }
             catch (err) {
@@ -367,13 +413,19 @@ const add_course = async (req, res) => {
         response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
     }
 
-    res.status(status).json({message: response_message});
+    if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+        res.status(status).json({message: response_message,  success: true});
+    }
+    else {
+        res.status(status).json({message: response_message, success: false});
+    }
 }
 
 
 const read_courses = async (req, res) => {
 
     const username = req.params.username;
+    let success = false;
 
     function func (user) { //When defined out here, the function gets our req and res objects from this scope
         let status = 200;
@@ -383,6 +435,7 @@ const read_courses = async (req, res) => {
         if (user !== null) { //If we were able to find a user
 
             status = 200;
+            success =true;
             response_message = "Returning all current courses for this user";
             content = user.courses_current;
         
@@ -392,7 +445,12 @@ const read_courses = async (req, res) => {
             response_message = "User does not exist";
         }
 
-        res.status(status).json({message: response_message, courses: content});
+        if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+            res.status(status).json({message: response_message, courses: content, success: true});
+        }
+        else {
+            res.status(status).json({message: response_message, courses: content, success: false});
+        }
     }
 
     run_func_on_user( username, func);
@@ -404,6 +462,7 @@ const update_course = async (req, res) => {
 
     let status = 200;
       let response_message = "";
+      let success= false;
       try {
           let user = await get_user(req.params.username);
           if (user !== null) { //If we were able to find a user
@@ -424,6 +483,7 @@ const update_course = async (req, res) => {
                   try {
                       await user.save();
                       status = 200; //idk man
+                      success = true;
                       response_message = "Successfully updated course by _id";
                   }
                   catch (err) {
@@ -447,7 +507,13 @@ const update_course = async (req, res) => {
           status = 400; //Figure out error codes later
           response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
       }
-      res.status(status).json({message: response_message});
+
+        if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+            res.status(status).json({message: response_message,  success: true});
+        }
+        else {
+            res.status(status).json({message: response_message,  success: false});
+        }
   }
 
 
@@ -455,6 +521,7 @@ const update_course = async (req, res) => {
 
     let status = 200;
     let response_message = "";
+    
     try {
         let user = await get_user(req.params.username);
         if (user !== null) { //If we were able to find a user
@@ -499,7 +566,13 @@ const update_course = async (req, res) => {
         status = 400; //Figure out error codes later
         response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
     }
-    res.status(status).json({message: response_message});
+
+    if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+        res.status(status).json({message: response_message, success: true});
+    }
+    else {
+        res.status(status).json({message: response_message, success: false});
+    }
 
 }
 
@@ -531,7 +604,12 @@ const read_userinfo = async (req, res) => {
             response_message = "User does not exist";
         }
 
-        res.status(status).json({message: response_message, user_info: content});
+        if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+            res.status(status).json({message: response_message, user_info: content, success: true});
+        }
+        else {
+            res.status(status).json({message: response_message, user_info: content, success: false});
+        }
     }
 
     run_func_on_user( username, func);
@@ -581,7 +659,12 @@ const update_userinfo = async (req, res) => {
           status = 400; //Figure out error codes later
           response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
       }
-      res.status(status).json({message: response_message});
+      if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+        res.status(status).json({message: response_message, success: true});
+    }
+    else {
+        res.status(status).json({message: response_message, success: false});
+    }
   }
 
 
@@ -605,7 +688,12 @@ const delete_user = async (req, res) => {
         }
 
 
-        res.status(status).json({message: response_message});
+        if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+            res.status(status).json({message: response_message, success: true});
+        }
+        else {
+            res.status(status).json({message: response_message, success: false});
+        }
 
 }
 
@@ -613,22 +701,27 @@ const define_university = async (req, res) => {
     // let university_name = req.params.universityname;
     let university = university_model(req.body);
     let status  = 200;
-    let message = "";
+    let response_message = "";
 
     try {
             await university.save();
             status = 200;
-            message = "University has been successfully created";
+            response_message = "University has been successfully created";
 
         }
         catch (err){
             console.log(err);
             status = 400; //Figure out error codes later
-            message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+            response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
         
     }
 
-    res.status(status).json({ "message":message});
+    if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+        res.status(status).json({message: response_message, success: true});
+    }
+    else {
+        res.status(status).json({message: response_message, success: false});
+    }
     return res;
 }
 
@@ -656,6 +749,13 @@ const read_university_info = async (req,res) => {
     }
 
     await fetch_from_db(model, query, found, not_found);
+
+    if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+        body.success = true;
+    }
+    else {
+       body.success = false;
+    }
 
     res.status(status).json(body);
 }
@@ -689,6 +789,13 @@ const create_course_for_university = async (req,res) => {
     }
 
     await fetch_from_db(model, query, found, not_found);
+
+    if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+        body.success = true;
+    }
+    else {
+       body.success = false;
+    }
 
     res.status(status).json(body);
 }
