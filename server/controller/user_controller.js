@@ -64,8 +64,8 @@ const login_user = async (req,res) => {
     // console.log(req.header);
     // console.log(req.body);
 
-    // let username = req.body.username;
-    // let pass_attempt = req.body.password;
+    let username = req.body.username;
+    let pass_attempt = req.body.password;
 
     // console.log(username+" "+pass_attempt);
 
