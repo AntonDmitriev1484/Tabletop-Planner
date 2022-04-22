@@ -190,9 +190,12 @@ const add_event = async (req,res) => {
 
 const delete_unresolved_event = async (req, res) => {
 
+    console.log('made it to delete handler');
     let status = 200;
     let response_message = "";
     let success = false;
+
+    console.log(req.body);
 
     try {
         let user = await get_user(req.params.username);
@@ -255,6 +258,8 @@ const delete_unresolved_event = async (req, res) => {
 
 const update_event = async (req, res) => {
 
+    console.log('in update event');
+
     let status = 200;
       let response_message = "";
       let success = false;
@@ -271,10 +276,15 @@ const update_event = async (req, res) => {
               //Linear search will be over at most 15 or so items since the list is activley maintained
               for (let i = 0; i<user.events_unresolved.length; i++){
                   let event = user.events_unresolved[i];
+
+                  console.log("Current event id "+event._id+" target event id "+target_id);
                   if (event._id == target_id){
                         found = true;
+
+                        console.log(req.body.progress);
                         if (req.body.progress < 100){
-                            event = req.body;
+                            //IF YOU'RE HAVING A BUG WHERE IT DOESN"T UPDATE THIS IS PROBABLY THE SOLUTION
+                            user.events_unresolved[i] = req.body;
                         }
                         else {
                             user.events_unresolved.splice(i,1);
