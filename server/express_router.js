@@ -84,7 +84,8 @@ router.route('/user/:username')
 
 //To add a new university to the database
 router.route('/university')
-        .post(controller_functions.define_university);
+        .post(controller_functions.define_university)
+        // .get(controller_functions.get_universities);
 
 //Users will input their university name to see what courses they have available to them
 router.route('/university/:universityname/courselist')
