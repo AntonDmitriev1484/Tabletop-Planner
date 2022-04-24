@@ -393,6 +393,9 @@ const add_course = async (req, res) => {
     let status = 200;
     let response_message = "";
     let success = false;
+
+    console.log("Adding course ");
+    console.log(req.body);
     try {
         let user = await get_user(req.params.username);
         if (user !== null) { //If we were able to find a user
@@ -736,18 +739,24 @@ const define_university = async (req, res) => {
 }
 
 const read_university_info = async (req,res) => {
-    let university_name = req.params.universityname;
+    let university_name = req.params.universityname.replace("_"," ");
+    //the .replace undoes changes made on the frontend to the string so that it could
+    //be sent through the url
+    console.log(university_name);
     let status = 200;
     let body = {message:"", content:""};
 
 
     let model = university_model;
 
-    query = {"university_name":university_name};
+    const query = {"name":university_name};
 
 
     const found = (university) => {
+        console.log('in found');
         body.content = university;
+
+        console.log(body.content);
         status = 200; //idk man
         body.message = "Returning all information about this university";
     }
@@ -793,9 +802,9 @@ const create_course_for_university = async (req,res) => {
     }
 
     const not_found = (err) => {
-        console.log(err);
-        status = 400; //Figure out error codes later
-        body.message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+        console.log("Not found");
+        
+        body.message = "Not found";
     }
 
     await fetch_from_db(model, query, found, not_found);
@@ -817,17 +826,27 @@ const create_course_for_university = async (req,res) => {
 
 const fetch_from_db = async (model, query, found, not_found) => {
     try {
+        console.log(query);
          let data = await model.findOne(query);
-         found(data);
-         try {
-            await data.save();
+         if (data !== null) {
+            found(data);
+            try {
+               await data.save();
+            }
+            catch (err) {
+                console.log(err);
+            }
          }
-         catch (err) {
-             console.log(err);
+         else {
+             not_found("Not found");
          }
+
     }
     catch (err) {
-        not_found(err);
+        console.log(err);
+        status = 400; //Figure out error codes later
+        body.message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+        // not_found(err);
     }
 }
 

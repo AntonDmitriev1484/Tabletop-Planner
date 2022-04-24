@@ -20,6 +20,9 @@ const university_schema = new mongoose.Schema(
     }
 );
 
+
+university_schema.index({name:1},{unique:true});
+
 //https://mongoosejs.com/docs/subdocs.html
 
 const university_model = mongoose.model("university_model", university_schema);
