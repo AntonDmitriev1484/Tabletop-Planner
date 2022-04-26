@@ -162,6 +162,14 @@ user_schema.methods = {
 
         event_archive.past_events.push(target);
         await event_archive.save();
+    },
+
+    restore_event: async function (target) {
+
+        target.progress = 0; //Resets progress back to 0
+        this.events_unresolved.push(target);
+
+        await this.save();
     }
 
     // add_homework: function(homework) {

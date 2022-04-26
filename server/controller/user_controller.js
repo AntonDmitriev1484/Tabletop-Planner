@@ -908,6 +908,84 @@ const read_archived_events = async (req, res) => {
    return res
 }
 
+const restore_archived_event = async (req, res) => {
+
+    const username = req.params.username;
+    const restore_id = req.body._id;
+    let success = false;
+
+    
+    console.log('restore_id outside func '+restore_id);
+
+    async function func (user) { //When defined out here, the function gets our req and res objects from this scope
+        let status = 200;
+        let response_message = "";
+        let content = "";
+        
+        if (user !== null) { //If we were able to find a user
+
+            const archive_id = user.event_archive;
+
+            console.log('restore_id in func '+restore_id);
+
+            try {
+                let archive = await event_archive_model.findOne({"_id":archive_id}).exec();
+                
+                //Find this user's archive
+                //Then iterate over each archived event until
+                //you find the one with a matching id
+
+                //Can't start i at 0, 
+                let i=0;
+                archive.past_events.forEach((event)=> {
+
+                    // console.log('MongoDb '+event._id.toString()+' vs '+' req '+restore_id);
+                    // console.log('i '+i);
+                    if (event._id.toString() === restore_id){ //Changing from '===' to '=='
+
+                        archive.past_events.splice(i,1);
+                        user.restore_event(event); //User adds event back to unresolved then saves itself
+                       
+                    }
+                    i++;
+                })
+
+                
+                await archive.save(); //archive saves itself
+
+                status = 200;
+                success = true;
+                response_message = "Archived event has been restored and moved to user's urnesolved list";
+                content = archive.past_events;
+                
+            }
+            catch (err) {
+                status = 400; //idk man
+                response_message = "SOmething went wrong lmao";
+            }
+        
+        }
+        else {
+            status = 202; //idk man
+            response_message = "User does not exist";
+        }
+
+        //return res.status(status).json({message: response_message, events: content});
+        if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+            res.status(status).json({message: response_message, events: content, success: true});
+        }
+        else {
+            res.status(status).json({message: response_message, events: content, success: false});
+        }
+    }
+
+    //res = run_func_on_user( username, res, func); //Confused lexical scoping
+
+    run_func_on_user( username, func);
+   //return  run_func_on_user( username, func);
+   return res
+}
+
 
 const generic_read = async() => {
     let status = 200;
@@ -926,7 +1004,7 @@ const controller_functions = {create_user, login_user, add_event,
     add_course, read_courses, update_course, delete_course,
     read_userinfo, update_userinfo, delete_user, check_session, 
     logout_user, read_university_info, create_course_for_university, define_university,
-    read_archived_events};
+    read_archived_events, restore_archived_event};
 export {controller_functions};
 
 
