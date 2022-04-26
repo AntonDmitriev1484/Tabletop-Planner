@@ -9,6 +9,7 @@ import {event_archive_model, event_archive_schema} from "../model/event_archive_
 import {university_model, university_schema} from "../model/university_model.js"
 
 
+
 const mongo_cli = connect(); //Call connect to set up our connection to mongodb
 
 
@@ -270,6 +271,8 @@ const update_event = async (req, res) => {
                  //let result = await user_model.findOneAndDelete({"user.events_unresolved.id":target_id}).exec();
               
               let found = false;
+
+              console.log(req.body)
               
               //Not super efficient, but starting from the user is probably more efficient
               //than mongo starting from the root of the collection
@@ -281,10 +284,11 @@ const update_event = async (req, res) => {
                   if (event._id == target_id){
                         found = true;
 
+                        user.events_unresolved[i] = req.body;
                         console.log(req.body.progress);
                         if (req.body.progress < 100){
                             //IF YOU'RE HAVING A BUG WHERE IT DOESN"T UPDATE THIS IS PROBABLY THE SOLUTION
-                            user.events_unresolved[i] = req.body;
+                            // user.events_unresolved[i] = req.body;
                         }
                         else {
                             user.events_unresolved.splice(i,1);
@@ -851,6 +855,60 @@ const fetch_from_db = async (model, query, found, not_found) => {
 }
 
 
+
+
+const read_archived_events = async (req, res) => {
+
+    const username = req.params.username;
+    let success = false;
+
+    async function func (user) { //When defined out here, the function gets our req and res objects from this scope
+        let status = 200;
+        let response_message = "";
+        let content = "";
+        
+        if (user !== null) { //If we were able to find a user
+
+            const archive_id = user.event_archive;
+
+            try {
+                const archive = await event_archive_model.findOne({"_id":archive_id}).exec();
+                console.log(archive);
+
+                status = 200;
+                success = true;
+                response_message = "Returning all archived events for this user";
+                content = archive.past_events;
+                
+            }
+            catch (err) {
+                status = 400; //idk man
+                response_message = "SOmething went wrong lmao";
+            }
+        
+        }
+        else {
+            status = 202; //idk man
+            response_message = "User does not exist";
+        }
+
+        //return res.status(status).json({message: response_message, events: content});
+        if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+            res.status(status).json({message: response_message, events: content, success: true});
+        }
+        else {
+            res.status(status).json({message: response_message, events: content, success: false});
+        }
+    }
+
+    //res = run_func_on_user( username, res, func); //Confused lexical scoping
+
+    run_func_on_user( username, func);
+   //return  run_func_on_user( username, func);
+   return res
+}
+
+
 const generic_read = async() => {
     let status = 200;
     let body = {message:"", content:""};
@@ -867,7 +925,8 @@ const controller_functions = {create_user, login_user, add_event,
     delete_unresolved_event, update_event, read_unresolved_events, 
     add_course, read_courses, update_course, delete_course,
     read_userinfo, update_userinfo, delete_user, check_session, 
-    logout_user, read_university_info, create_course_for_university, define_university};
+    logout_user, read_university_info, create_course_for_university, define_university,
+    read_archived_events};
 export {controller_functions};
 
 

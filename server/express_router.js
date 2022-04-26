@@ -66,6 +66,9 @@ router.route('/user/:username/events')
         .put(controller_functions.check_session, controller_functions.update_event)
         .get(controller_functions.check_session, controller_functions.read_unresolved_events)
 
+router.route('/user/:username/archive')
+        .get(controller_functions.check_session, controller_functions.read_archived_events)
+
 
 router.route('/user/:username/courses') //'course' used here, will be dealing with pcourse objects in mongodb
         .post(controller_functions.check_session, controller_functions.add_course)
