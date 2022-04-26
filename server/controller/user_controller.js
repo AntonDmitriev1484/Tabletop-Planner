@@ -292,7 +292,7 @@ const update_event = async (req, res) => {
                         }
                         else {
                             user.events_unresolved.splice(i,1);
-                            user.archive_event(event);
+                            user.archive_event(req.body); //So that the archive will get the most recently updated version
                         }
                    }
               }
