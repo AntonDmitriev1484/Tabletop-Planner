@@ -155,6 +155,11 @@ user_schema.methods = {
         // console.log(event_archive); //Not the slightest clue why its a fucking array
         // console.log(event_archive.past_events);
 
+        const D = new Date().toISOString();
+        target.date_time_archived = D;
+
+        // target.date_time_archived = D.getMonth()+'/'+D.getDay()+'/'+D.getFullYear();
+
         event_archive.past_events.push(target);
         await event_archive.save();
     }

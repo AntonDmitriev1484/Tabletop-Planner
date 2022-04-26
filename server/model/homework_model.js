@@ -15,6 +15,9 @@ const homework_schema = new mongoose.Schema(
         type: Date,
         default: Date.now 
     },
+    date_time_archived: { //Will only be set once the assignment has been archived
+        type: Date
+    },
     progress: {
         type: Number,
         default: 0
