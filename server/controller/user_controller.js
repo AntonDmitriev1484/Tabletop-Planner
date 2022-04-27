@@ -743,7 +743,7 @@ const define_university = async (req, res) => {
 }
 
 const read_university_info = async (req,res) => {
-    let university_name = req.params.universityname.replace("_"," ");
+    let university_name = req.params.universityname.replaceAll("_"," ");
     //the .replace undoes changes made on the frontend to the string so that it could
     //be sent through the url
     console.log(university_name);
@@ -785,7 +785,7 @@ const read_university_info = async (req,res) => {
 
 
 const create_course_for_university = async (req,res) => {
-    let university_name = req.params.universityname;
+    let university_name = req.params.universityname.replaceAll("_"," ");
     let status = 200;
     let body = {message:""};
 
@@ -798,8 +798,10 @@ const create_course_for_university = async (req,res) => {
 
     const found = async (university) => {
 
-        let course = m.course_model(req.body);
+        let course = m.course_model(req.body.course);
         university.courses.push(course);
+
+        university.save();
 
         status = 200; //idk man
         body.message = "Course has successfully been added to this university";
