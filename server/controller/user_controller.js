@@ -11,34 +11,84 @@ import {university_model, university_schema} from "../model/university_model.js"
 let session;
 
 //Since saveUser is an arrow function
-//it's 'this' is tied automatically to its execution context
-const saveUser = () => {
-    
-    console.log("From saveUser");
-    console.log(this);
+//it's 'this' is tied automatically to its execution context. OK I think that tutorial completley blew smoke up my ass
+const saveUser = (req, res, user, send) => {
 
-    //Interesting how 'this' is undefined here
+    user.save().then( () => {
+        send.response_message += "User has been successfully saved. "
 
-    //this.res.status(this.status).json({message: this.response_message,  success: true});
-
-    this.user.save().then( () => {
-        status = 200;
-        success = true;
-        response_message = "User has been successfully created"
+        res.status(send.status)
+        res.json(send);
     })
     .catch((err) => {
         console.log(err);
-        status = 400; //Figure out error codes later
-        response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+
+        send.status = 400;
+        send.response_message += "User save failed. ";
+        
+        // res.status(send.status)
+        // res.json(send);
     })
         
 }
+
+//Ok so it was being fucking braindead because for some reason its in strict mode
+//No idea how to turn strict mode off, not doing the scoping approach anymore
+
+var isStrict = (function() { return !this; })();
 
 const test_obj = {
     status: 200,
     response_message: "",
     success: false,
     
+    
+}
+
+function create_user(req,res) {
+    //console.log("isStrict "+ isStrict);
+    //If all these arrow functions don't work, know that objects get passed by reference
+
+    //Setting both of these up as objects so that they will be passed by reference
+    let send = {
+        status: 200,
+        response_message: "",
+        success: true
+    }
+
+    let event_archive = new event_archive_model();
+
+    //No idea why its bitching about the headers
+
+    const a = (req, res, send) => {
+        let user = new user_model(req.body);
+        //Gives each new user a ref to their event_archive
+        user.event_archive = event_archive.id;
+
+        send.response_message += "User created, event archived added. "
+        
+        saveUser(req, res, user, send);
+    }
+
+    const b = (req, res, err, send) => {
+        console.log(err);
+
+        send.status = 400;
+        send.response_message += "Event archive save failed. ";
+        
+        // res.status(send.status)
+        // res.json(send);
+    }
+
+    event_archive.save()
+    .then(
+        a(req, res, send)
+    )
+    .catch((err) => {
+        b(req, res, err, send)
+    }
+    )
+
 }
 
 
@@ -46,47 +96,7 @@ const test_obj = {
 //By externally binding create_user() to test_obj, we can get it to retain it's scop in the this object
 //Note that this doesn't work when defining the function within the object. I love JS!
 
-//All of these functions need to be async since we're using .save() on mongoose objects to the database
-async function create_user(req,res) {
 
-    //If all these arrow functions don't work, know that objects get passed by reference
-
-    console.log(this);
-
-    let status = 200;
-    let response_message = "";
-    let success = false;
-
-    
-    let event_archive = new event_archive_model();
-
-    //This lambda function has an undefined 'this' because its execution context is wherever .then() takes it
-    //However, it will take in the outer scope, which should get passed to saveUser() as its 'this'
-    const a = () => {
-        let user = new user_model(req.body);
-        //Gives each new user a ref to their event_archive
-        user.event_archive = event_archive.id;
-
-        console.log("This from a() ");
-        console.log( this);
-    
-        //Arrow functions use the 'this' from their enclosing execution context
-        saveUser();
-    }
-
-    const b = () => {
-        console.log('failed');
-    }
-
-    event_archive.save()
-    .then(
-        a()
-    )
-    .catch(
-
-    )
-
-}
 
 const login_user = async (req,res) => {
 
