@@ -33,7 +33,7 @@ const router = express.Router();
 router.route('/register')
     .post(
         //Using post to create a new resource
-        controller_functions.create_user
+        controller_functions.create_user.bind(controller_functions.test_obj)
     )
 
 router.route('/auth') //Handles login/logout/cookies requests

@@ -8,88 +8,65 @@ import {user_model} from '../model/user_model.js'
 import {event_archive_model, event_archive_schema} from "../model/event_archive_model.js"
 import {university_model, university_schema} from "../model/university_model.js"
 
-let session;
-
-//Since saveUser is an arrow function
-//it's 'this' is tied automatically to its execution context
-const saveUser = () => {
-    
-    console.log("From saveUser");
-    console.log(this);
-
-    //Interesting how 'this' is undefined here
-
-    //this.res.status(this.status).json({message: this.response_message,  success: true});
-
-    this.user.save().then( () => {
-        status = 200;
-        success = true;
-        response_message = "User has been successfully created"
-    })
-    .catch((err) => {
-        console.log(err);
-        status = 400; //Figure out error codes later
-        response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
-    })
-        
-}
-
-const test_obj = {
-    status: 200,
-    response_message: "",
-    success: false,
-    
-}
 
 
+const mongo_cli = connect(); //Call connect to set up our connection to mongodb
 
-//By externally binding create_user() to test_obj, we can get it to retain it's scop in the this object
-//Note that this doesn't work when defining the function within the object. I love JS!
+
+let session = "";
+
 
 //All of these functions need to be async since we're using .save() on mongoose objects to the database
-async function create_user(req,res) {
-
-    //If all these arrow functions don't work, know that objects get passed by reference
-
-    console.log(this);
+const create_user = async (req,res) => {
+    //Assuming that the body of the request will be formatted in the way we need it
+    // {
+    //     username: User,
+    //     email: email@email.com,
+    //     password: 12345 //Password DOES get set like this, even as a virtual field
+    // }
 
     let status = 200;
     let response_message = "";
     let success = false;
-
     
     let event_archive = new event_archive_model();
 
-    //This lambda function has an undefined 'this' because its execution context is wherever .then() takes it
-    //However, it will take in the outer scope, which should get passed to saveUser() as its 'this'
-    const a = () => {
+    try {
+        await event_archive.save();
         let user = new user_model(req.body);
         //Gives each new user a ref to their event_archive
         user.event_archive = event_archive.id;
-
-        console.log("This from a() ");
-        console.log( this);
     
-        //Arrow functions use the 'this' from their enclosing execution context
-        saveUser();
+    
+        try {
+            await user.save();
+            status = 200;
+            success = true;
+            response_message = "User has been successfully created"
+        }
+        catch (err){
+            console.log(err);
+            status = 400; //Figure out error codes later
+            response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+        }
+    }
+    catch (err){
+        console.log(err);
+        status = 400; //Figure out error codes later
+        response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
     }
 
-    const b = () => {
-        console.log('failed');
+    //https://expressjs.com/en/4x/api.html#res.json
+    if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+        res.status(status).json({message: response_message,  success: true});
     }
-
-    event_archive.save()
-    .then(
-        a()
-    )
-    .catch(
-
-    )
-
+    else {
+        res.status(status).json({message: response_message,  success: false});
+    }
+    return res;
 }
 
 const login_user = async (req,res) => {
-
     
     // console.log("received json: ");
     // console.log(req.header);
@@ -1029,7 +1006,7 @@ const controller_functions = {create_user, login_user, add_event,
     add_course, read_courses, update_course, delete_course,
     read_userinfo, update_userinfo, delete_user, check_session, 
     logout_user, read_university_info, create_course_for_university, define_university,
-    read_archived_events, restore_archived_event, test_obj};
+    read_archived_events, restore_archived_event};
 export {controller_functions};
 
 
