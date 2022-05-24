@@ -34,29 +34,15 @@ const saveUser = (req, res, user, send) => { //Assuming that this is the last th
 
         send.reset();
     })
-        
 }
 
-// const error_response = (res, send, status, message) => {
-//     //Assumes that the Express res object is being passed by reference
-//     send.status = status;
-//     send.response_message += message;
-//     res.status(send.status);
-//     res.json(send);
-// }
+//We'll end up with one controller object per route
 
-//Ok so it was being fucking braindead because for some reason its in strict mode
-//No idea how to turn strict mode off, not doing the scoping approach anymore
-
-//var isStrict = (function() { return !this; })();
-
+//Make an instance of the controller
 let create_user_controller = Object.create(controller_prototype);
 
-create_user_controller.controller_function = create_user;
-
-create_user_controller.error_status = 400;
-create_user_controller.error_message = "Couldn't create archive";
-
+//Create a controller function which will be run in the context of this object
+//So they don't really work by themselves, but only when bound to a controller
 function create_user(req,res) {
 
     this.req = req;
@@ -71,12 +57,25 @@ function create_user(req,res) {
         user.event_archive = event_archive.id;
 
         this.send.response_message += "Event archived added. "
+
+
         saveUser(this.req, this.res, user, this.send);
     }
 
     event_archive.save().then( success ).catch(this.handle_error)
 
 }
+
+
+create_user_controller.controller_function = create_user.bind(create_user_controller);
+
+//This doesn't work, because in order for 'this' to be defined in create_user the function has to be defined within the object
+//Simply setting the function doesn't do anything, you have to bind it
+
+//Set properties of the instance, ex. what error_status this controller should send out, what error_message it should have
+create_user_controller.error_status = 400;
+create_user_controller.error_message = "Couldn't create archive";
+
 
 
 //THIS VERSION WORKS!!!
@@ -115,10 +114,6 @@ function create_user(req,res) {
 
 // }
 
-
-
-//By externally binding create_user() to test_obj, we can get it to retain it's scop in the this object
-//Note that this doesn't work when defining the function within the object. I love JS!
 
 
 

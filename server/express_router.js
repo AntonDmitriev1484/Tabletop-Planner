@@ -38,9 +38,9 @@ router.route('/register')
         //Works
         //controller_functions.create_user
 
-        //controller_functions.create_user_controller.controller_function
+        controller_functions.create_user_controller.controller_function
 
-        controller_functions.create_user.bind(controller_functions.create_user_controller)
+        //controller_functions.create_user.bind(controller_functions.create_user_controller)
     )
 
 router.route('/auth') //Handles login/logout/cookies requests

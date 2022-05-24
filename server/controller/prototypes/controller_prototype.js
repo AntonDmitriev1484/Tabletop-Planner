@@ -17,7 +17,8 @@ const controller_prototype = {
     error_status: 400,
     error_message: "",
 
-    controller_function: (req, res) => {},
+    controller_function: {},
+    //(req, res) => {},
 
     handle_error (err) {
         console.log(err);
