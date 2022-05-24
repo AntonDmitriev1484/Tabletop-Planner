@@ -8,17 +8,20 @@ import {user_model} from '../model/user_model.js'
 import {event_archive_model, event_archive_schema} from "../model/event_archive_model.js"
 import {university_model, university_schema} from "../model/university_model.js"
 
+import controller_prototype from './prototypes/controller_prototype.js'
+
 let session;
 
-//Since saveUser is an arrow function
-//it's 'this' is tied automatically to its execution context. OK I think that tutorial completley blew smoke up my ass
-const saveUser = (req, res, user, send) => {
+
+const saveUser = (req, res, user, send) => { //Assuming that this is the last thing we call in most of our controllers
 
     user.save().then( () => {
         send.response_message += "User has been successfully saved. "
 
         res.status(send.status)
         res.json(send);
+
+        send.reset();
     })
     .catch((err) => {
         console.log(err);
@@ -28,62 +31,31 @@ const saveUser = (req, res, user, send) => {
         
         res.status(send.status)
         res.json(send);
+
+        send.reset();
     })
         
 }
 
-const error_response = (res, send, status, message) => {
-    //Assumes that the Express res object is being passed by reference
-    send.status = status;
-    send.response_message += message;
-    res.status(send.status);
-    res.json(send);
-}
+// const error_response = (res, send, status, message) => {
+//     //Assumes that the Express res object is being passed by reference
+//     send.status = status;
+//     send.response_message += message;
+//     res.status(send.status);
+//     res.json(send);
+// }
 
 //Ok so it was being fucking braindead because for some reason its in strict mode
 //No idea how to turn strict mode off, not doing the scoping approach anymore
 
-var isStrict = (function() { return !this; })();
-
-const test_obj = {
-    status: 200,
-    response_message: "",
-    success: false
-}
-
-const controller_prototype = {
-    send: {
-        status:200,
-        response_message: "",
-        success: true,
-    },
-
-    req,
-    res,
-
-    error_status,
-    error_message,
-
-    controller_function: (req, res) => {},
-
-    handle_error (err) {
-        console.log(err);
-        error_response( )
-    },
-
-    error_response () {
-        //Assumes that the Express res object is being passed by reference
-        send.status = this.error_status;
-        send.response_message += this.error_message;
-        res.status(send.status);
-        res.json(send);
-    }
-
-}
+//var isStrict = (function() { return !this; })();
 
 let create_user_controller = Object.create(controller_prototype);
 
 create_user_controller.controller_function = create_user;
+
+create_user_controller.error_status = 400;
+create_user_controller.error_message = "Couldn't create archive";
 
 function create_user(req,res) {
 
@@ -92,22 +64,17 @@ function create_user(req,res) {
 
     let event_archive = new event_archive_model();
 
-    const a = () => {
+    const success = () => {
         let user = new user_model(req.body);
 
         //Gives each new user a ref to their event_archive
         user.event_archive = event_archive.id;
 
-        this.send.response_message += "User created, event archived added. "
-        saveUser(req, res, user, send);
+        this.send.response_message += "Event archived added. "
+        saveUser(this.req, this.res, user, this.send);
     }
 
-    event_archive.save()
-    .then(
-        a()
-    )
-    .catch(this.handle_error)
-
+    event_archive.save().then( success ).catch(this.handle_error)
 
 }
 
@@ -1096,7 +1063,7 @@ const controller_functions = {create_user, login_user, add_event,
     add_course, read_courses, update_course, delete_course,
     read_userinfo, update_userinfo, delete_user, check_session, 
     logout_user, read_university_info, create_course_for_university, define_university,
-    read_archived_events, restore_archived_event, test_obj};
+    read_archived_events, restore_archived_event, create_user_controller};
 export {controller_functions};
 
 
