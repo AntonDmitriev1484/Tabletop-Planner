@@ -26,10 +26,18 @@ const saveUser = (req, res, user, send) => {
         send.status = 400;
         send.response_message += "User save failed. ";
         
-        // res.status(send.status)
-        // res.json(send);
+        res.status(send.status)
+        res.json(send);
     })
         
+}
+
+const error_response = (res, send, status, message) => {
+    //Assumes that the Express res object is being passed by reference
+    send.status = status;
+    send.response_message += message;
+    res.status(send.status);
+    res.json(send);
 }
 
 //Ok so it was being fucking braindead because for some reason its in strict mode
@@ -40,56 +48,105 @@ var isStrict = (function() { return !this; })();
 const test_obj = {
     status: 200,
     response_message: "",
-    success: false,
-    
-    
+    success: false
 }
 
-function create_user(req,res) {
-    //console.log("isStrict "+ isStrict);
-    //If all these arrow functions don't work, know that objects get passed by reference
-
-    //Setting both of these up as objects so that they will be passed by reference
-    let send = {
-        status: 200,
+const controller_prototype = {
+    send: {
+        status:200,
         response_message: "",
-        success: true
+        success: true,
+    },
+
+    req,
+    res,
+
+    error_status,
+    error_message,
+
+    controller_function: (req, res) => {},
+
+    handle_error (err) {
+        console.log(err);
+        error_response( )
+    },
+
+    error_response () {
+        //Assumes that the Express res object is being passed by reference
+        send.status = this.error_status;
+        send.response_message += this.error_message;
+        res.status(send.status);
+        res.json(send);
     }
+
+}
+
+let create_user_controller = Object.create(controller_prototype);
+
+create_user_controller.controller_function = create_user;
+
+function create_user(req,res) {
+
+    this.req = req;
+    this.res = res;
 
     let event_archive = new event_archive_model();
 
-    //No idea why its bitching about the headers
-
-    const a = (req, res, send) => {
+    const a = () => {
         let user = new user_model(req.body);
+
         //Gives each new user a ref to their event_archive
         user.event_archive = event_archive.id;
 
-        send.response_message += "User created, event archived added. "
-        
+        this.send.response_message += "User created, event archived added. "
         saveUser(req, res, user, send);
-    }
-
-    const b = (req, res, err, send) => {
-        console.log(err);
-
-        send.status = 400;
-        send.response_message += "Event archive save failed. ";
-        
-        // res.status(send.status)
-        // res.json(send);
     }
 
     event_archive.save()
     .then(
-        a(req, res, send)
+        a()
     )
-    .catch((err) => {
-        b(req, res, err, send)
-    }
-    )
+    .catch(this.handle_error)
+
 
 }
+
+
+//THIS VERSION WORKS!!!
+
+// function create_user(req,res) {
+
+//     let send = {
+//         status: 200,
+//         response_message: "",
+//         success: true
+//     }
+
+//     let event_archive = new event_archive_model();
+
+//     const a = () => {
+//         let user = new user_model(req.body);
+
+//         //Gives each new user a ref to their event_archive
+//         user.event_archive = event_archive.id;
+
+//         send.response_message += "User created, event archived added. "
+//         saveUser(req, res, user, send);
+//     }
+
+//     const handle_error = (err) => {
+//         console.log(err);
+//         error_response(res, send, 400, "Couldn't create event archive.")
+//     }
+
+//     event_archive.save()
+//     .then(
+//         a()
+//     )
+//     .catch(handle_error)
+
+
+// }
 
 
 
