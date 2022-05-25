@@ -13,37 +13,43 @@ import controller_prototype from './prototypes/controller_prototype.js'
 let session;
 
 
-const saveUser = (req, res, user, send) => { //Assuming that this is the last thing we call in most of our controllers
+//Not part of any prototype or object
+//Just a helper function
+
+const saveUser = (req, res, user, info) => { //Assuming that this is the last thing we call in most of our controllers
 
     user.save().then( () => {
-        send.response_message += "User has been successfully saved. "
+        info.message += "User has been successfully saved. "
 
-        res.status(send.status)
-        res.json(send);
+        res.status(info.status)
+        res.json(info);
 
-        send.reset();
+        info.reset();
     })
     .catch((err) => {
         console.log(err);
 
-        send.status = 400;
-        send.response_message += "User save failed. ";
+        info.status = 400;
+        info.message += "User save failed. ";
         
-        res.status(send.status)
-        res.json(send);
+        res.status(info.status)
+        res.json(info);
 
-        send.reset();
+        info.reset();
     })
 }
+
+
+
 
 //We'll end up with one controller object per route
 
 //Make an instance of the controller
-let create_user_controller = Object.create(controller_prototype);
+let create_user = Object.create(controller_prototype);
 
 //Create a controller function which will be run in the context of this object
 //So they don't really work by themselves, but only when bound to a controller
-function create_user(req,res) {
+function create_user_handler(req,res) {
 
     this.req = req;
     this.res = res;
@@ -56,25 +62,24 @@ function create_user(req,res) {
         //Gives each new user a ref to their event_archive
         user.event_archive = event_archive.id;
 
-        this.send.response_message += "Event archived added. "
+        this.info.message += "Event archived added. "
 
-
-        saveUser(this.req, this.res, user, this.send);
+        saveUser(this.req, this.res, user, this.info);
     }
 
-    event_archive.save().then( success ).catch(this.handle_error)
+    event_archive.save().then( success ).catch( this.handle_error )
 
 }
 
 
-create_user_controller.controller_function = create_user.bind(create_user_controller);
+create_user.run = create_user_handler.bind(create_user);
 
 //This doesn't work, because in order for 'this' to be defined in create_user the function has to be defined within the object
 //Simply setting the function doesn't do anything, you have to bind it
 
 //Set properties of the instance, ex. what error_status this controller should send out, what error_message it should have
-create_user_controller.error_status = 400;
-create_user_controller.error_message = "Couldn't create archive";
+create_user.error_status = 400;
+create_user.error_message = "Couldn't create archive";
 
 
 
@@ -1053,13 +1058,13 @@ const generic_read = async() => {
 }
 
 
-const controller_functions = {create_user, login_user, add_event, 
+const controller = {create_user, login_user, add_event, 
     delete_unresolved_event, update_event, read_unresolved_events, 
     add_course, read_courses, update_course, delete_course,
     read_userinfo, update_userinfo, delete_user, check_session, 
     logout_user, read_university_info, create_course_for_university, define_university,
-    read_archived_events, restore_archived_event, create_user_controller};
-export {controller_functions};
+    read_archived_events, restore_archived_event};
+export {controller};
 
 
 

@@ -1,12 +1,12 @@
 
 const controller_prototype = {
-    send: { //Send bundles relevant information to pass to functions outside this prototype
+    info: { //info holds information which we want to info whenever we run res.json.
         status:200,
-        response_message: "",
+        message: "",
         success: true,
         reset() {
             this.status = 200;
-            this.response_message = "";
+            this.message = "";
             this.success = true;
         }
     },
@@ -14,11 +14,11 @@ const controller_prototype = {
     req: {},
     res: {},
 
+    //To handle the first possible thrown error by this controller
     error_status: 400,
     error_message: "",
 
-    controller_function: {},
-    //(req, res) => {},
+    run: {},
 
     handle_error (err) {
         console.log(err);
@@ -26,10 +26,11 @@ const controller_prototype = {
     },
 
     error_response () {
-        this.send.status = this.error_status;
-        this.send.response_message += this.error_message;
-        this.res.status(this.send.status);
-        this.res.json(this.send);
+        this.info.status = this.error_status;
+        this.info.response_message += this.error_message;
+
+        this.res.status(this.info.status);
+        this.res.json(this.info);
     }
 
 }

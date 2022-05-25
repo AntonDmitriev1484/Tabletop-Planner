@@ -1,5 +1,5 @@
 import express from 'express'
-import {controller_functions} from './controller/user_controller.js'
+import {controller as controller_functions} from './controller/user_controller.js'
 
 const router = express.Router();
 
@@ -38,7 +38,7 @@ router.route('/register')
         //Works
         //controller_functions.create_user
 
-        controller_functions.create_user_controller.controller_function
+        controller_functions.create_user.run
 
         //controller_functions.create_user.bind(controller_functions.create_user_controller)
     )
