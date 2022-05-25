@@ -45,7 +45,7 @@ router.route('/register')
 
 router.route('/auth') //Handles login/logout/cookies requests
     .post( //Post is best for login as it is most secure
-        controller_functions.login_user
+        controller_functions.login_user.run
     )
         
 router.route('/user/:username/logout')

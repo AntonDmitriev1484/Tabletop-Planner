@@ -73,8 +73,6 @@ function create_user_handler(req,res) {
 
 
 create_user.run = create_user_handler.bind(create_user);
-
-//This doesn't work, because in order for 'this' to be defined in create_user the function has to be defined within the object
 //Simply setting the function doesn't do anything, you have to bind it
 
 //Set properties of the instance, ex. what error_status this controller should send out, what error_message it should have
@@ -82,104 +80,99 @@ create_user.error_status = 400;
 create_user.error_message = "Couldn't create archive";
 
 
+let login_user = Object.create(controller_prototype);
 
-//THIS VERSION WORKS!!!
-
-// function create_user(req,res) {
-
-//     let send = {
-//         status: 200,
-//         response_message: "",
-//         success: true
-//     }
-
-//     let event_archive = new event_archive_model();
-
-//     const a = () => {
-//         let user = new user_model(req.body);
-
-//         //Gives each new user a ref to their event_archive
-//         user.event_archive = event_archive.id;
-
-//         send.response_message += "User created, event archived added. "
-//         saveUser(req, res, user, send);
-//     }
-
-//     const handle_error = (err) => {
-//         console.log(err);
-//         error_response(res, send, 400, "Couldn't create event archive.")
-//     }
-
-//     event_archive.save()
-//     .then(
-//         a()
-//     )
-//     .catch(handle_error)
-
-
-// }
-
-
-
-
-const login_user = async (req,res) => {
-
-    
-    // console.log("received json: ");
-    // console.log(req.header);
-    // console.log(req.body);
+function login_user_handler(req, res) {
 
     let username = req.body.username;
     let pass_attempt = req.body.password;
-    let success = false;
 
-    // console.log(username+" "+pass_attempt);
+    const success = ( user ) => {
 
-    //Need to query mongodb by username
-
-    let status = 200;
-    let response_message = "";
-    try {
-        let user = await get_user(username);
-
-
+        console.log('in login success');
         if (user !== null) { //If we were able to find a user
-
             if (user.check_pass(pass_attempt)){
-                status = 200;
                 session=req.session;
-                session.username=req.body.username;
-                success = true;
-                //On login we set username in the session object
-
-                response_message = "User logged in successfully";
+                session.username=req.body.username; //On login we set username in the session object
+                this.info.message += "User logged in successfully";
             }
             else {
-                status = 201; //idk man
-                response_message = "User exists but password is incorrect";
+                this.info.status = 201; //idk man
+                this.info.message += "User exists but password is incorrect";
             }
         }
         else {
-            status = 202; //idk man
-            response_message = "User does not exist";
+            this.info.status = 202; //idk man
+            this.message += "User does not exist";
         }
 
-    }
-    catch (err){
-        console.log(err);
-        status = 400; //Figure out error codes later
-        response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
-    
+        res.status(this.info.status);
+        res.json(this.info);
+
     }
 
-    if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
-        res.status(status).json({message: response_message,  success: true});
-    }
-    else {
-        res.status(status).json({message: response_message,  success: false});
-    }
+    //get_user(username) will pass the resulting user object to the .then()
+    get_user(username).then( success ).catch(this.handle_error);
 
 }
+
+login_user.run = login_user_handler.bind(login_user);
+login_user.error_status = 402; //Couldn't find user
+login_user.error_message = "Error thrown while searching database for user. "
+
+
+
+// const login_user = async (req,res) => {
+
+
+
+//     // console.log(username+" "+pass_attempt);
+
+//     //Need to query mongodb by username
+
+//     let status = 200;
+//     let response_message = "";
+//     try {
+//         let user = await get_user(username);
+
+
+//         if (user !== null) { //If we were able to find a user
+
+//             if (user.check_pass(pass_attempt)){
+//                 status = 200;
+//                 session=req.session;
+//                 session.username=req.body.username;
+//                 success = true;
+//                 //On login we set username in the session object
+
+//                 response_message = "User logged in successfully";
+//             }
+//             else {
+//                 status = 201; //idk man
+//                 response_message = "User exists but password is incorrect";
+//             }
+//         }
+//         else {
+//             status = 202; //idk man
+//             response_message = "User does not exist";
+//         }
+
+//     }
+//     catch (err){
+//         console.log(err);
+//         status = 400; //Figure out error codes later
+//         response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
+    
+//     }
+
+//     if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
+//         res.status(status).json({message: response_message,  success: true});
+//     }
+//     else {
+//         res.status(status).json({message: response_message,  success: false});
+//     }
+
+// }
 
 //SESSION AUTHENTICATION MIDDLEWARE
 //protects the endpoints that we need to be behind login
