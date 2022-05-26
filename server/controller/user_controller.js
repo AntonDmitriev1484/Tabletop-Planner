@@ -10,34 +10,9 @@ import {university_model, university_schema} from "../model/university_model.js"
 
 import controller_prototype from './prototypes/controller_prototype.js'
 
+import {saveUser, get_user, run_on_unresolved_event} from './helpers/helpers.js'
+
 let session;
-
-
-//Not part of any prototype or object
-//Just a helper function
-
-const saveUser = (req, res, user, info) => { //Assuming that this is the last thing we call in most of our controllers
-
-    user.save().then( () => {
-        info.message += "User has been successfully saved. "
-
-        res.status(info.status)
-        res.json(info);
-
-        info.reset();
-    })
-    .catch((err) => {
-        console.log(err);
-
-        info.status = 400;
-        info.message += "User save failed. ";
-        
-        res.status(info.status)
-        res.json(info);
-
-        info.reset();
-    })
-}
 
 
 
@@ -80,6 +55,10 @@ create_user.error_status = 400;
 create_user.error_message = "Couldn't create archive";
 
 
+
+
+
+
 let login_user = Object.create(controller_prototype);
 
 function login_user_handler(req, res) {
@@ -108,12 +87,10 @@ function login_user_handler(req, res) {
 
         res.status(this.info.status);
         res.json(this.info);
-
     }
 
     //get_user(username) will pass the resulting user object to the .then()
     get_user(username).then( success ).catch(this.handle_error);
-
 }
 
 login_user.run = login_user_handler.bind(login_user);
@@ -122,57 +99,7 @@ login_user.error_message = "Error thrown while searching database for user. "
 
 
 
-// const login_user = async (req,res) => {
 
-
-
-//     // console.log(username+" "+pass_attempt);
-
-//     //Need to query mongodb by username
-
-//     let status = 200;
-//     let response_message = "";
-//     try {
-//         let user = await get_user(username);
-
-
-//         if (user !== null) { //If we were able to find a user
-
-//             if (user.check_pass(pass_attempt)){
-//                 status = 200;
-//                 session=req.session;
-//                 session.username=req.body.username;
-//                 success = true;
-//                 //On login we set username in the session object
-
-//                 response_message = "User logged in successfully";
-//             }
-//             else {
-//                 status = 201; //idk man
-//                 response_message = "User exists but password is incorrect";
-//             }
-//         }
-//         else {
-//             status = 202; //idk man
-//             response_message = "User does not exist";
-//         }
-
-//     }
-//     catch (err){
-//         console.log(err);
-//         status = 400; //Figure out error codes later
-//         response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
-    
-//     }
-
-//     if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
-//         res.status(status).json({message: response_message,  success: true});
-//     }
-//     else {
-//         res.status(status).json({message: response_message,  success: false});
-//     }
-
-// }
 
 //SESSION AUTHENTICATION MIDDLEWARE
 //protects the endpoints that we need to be behind login
@@ -196,250 +123,161 @@ const logout_user = (req, res) => {
 
 }
 
-const add_event = async (req,res) => {
 
-    let status = 200;
-    let response_message = "";
-    let success = false;
 
-    try {
-        let user = await get_user(req.params.username);
+
+
+let add_event = Object.create(controller_prototype);
+
+function add_event_handler (req, res) {
+
+    this.req = req;
+    this.res = res;
+
+    const success = (user) => {
         if (user !== null) { //If we were able to find a user
-            let homework = m.homework_model(req.body);
 
+            let homework = m.homework_model(req.body);
             user.events_unresolved.push(homework);
 
-            try {
-                await user.save();
-                status = 200;
-                response_message = "Event added to planner successfully";
-                success = true;
-            }
-            catch (err) {
-                console.log(err);
-                status = 400; //Figure out error codes later
-                response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
-            }
+            saveUser(this.req, this.res, user, this.info);
         }
         else {
-            status = 202; //idk man
-            response_message = "User does not exist";
+            this.info.status = 202; //idk man
+            this.info.message = "User does not exist";
+
+            this.res.status(this.info.status);
+            this.res.json(this.info);
         }
     }
-    catch (err) {
-        console.log(err);
-        status = 400; //Figure out error codes later
-        response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
-    }
-    if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
-        res.status(status).json({message: response_message,  success: true});
-    }
-    else {
-        res.status(status).json({message: response_message,  success: false});
-    }
+    get_user(req.params.username).then(success).catch(this.handle_error);
 }
 
-const delete_unresolved_event = async (req, res) => {
+add_event.run = add_event_handler.bind(add_event);
 
-    console.log('made it to delete handler');
-    let status = 200;
-    let response_message = "";
-    let success = false;
+add_event.error_status = 402; //Couldn't find user
+add_event.error_message = "Error thrown while searching database for user. ";
 
-    console.log(req.body);
 
-    try {
-        let user = await get_user(req.params.username);
+
+
+
+let delete_unresolved_event = Object.create(controller_prototype);
+
+function delete_unresolved_event_handler (req, res) {
+
+    this.req = req;
+    this.res = res;
+
+    const success = (user) => {
+        if (user !== null) {
+
+            const found = () => {
+                user.events_unresolved.splice(i,1);
+                saveUser(this.req, this.res, user, this.info);
+            }
+
+            run_on_unresolved_event(this.req, this.res, user, found);
+
+        }
+        else {
+            this.info.status = 202; //idk man
+            this.info.message = "User does not exist";
+
+            this.res.status(this.info.status);
+            this.res.json(this.info);
+        }
+           
+    }
+    get_user(req.params.username).then(success).catch(this.handle_error);
+
+}
+//I think get_user should also just handle checking if the user object is null
+
+delete_unresolved_event.run = delete_unresolved_event_handler.bind(delete_unresolved_event);
+delete_unresolved_event.error_code = 400;
+delete_unresolved_event.error_message = "Temp";
+
+
+
+
+let update_event = Object.create(controller_prototype);
+
+function update_event_handler(req, res) {
+    this.req = req;
+    this.res = res;
+
+    const success = (user) => {
         if (user !== null) { //If we were able to find a user
-            const target_id = req.body._id;
-               //let result = await user_model.findOneAndDelete({"user.events_unresolved.id":target_id}).exec();
-            
-            let found = false;
-            
-            //Not super efficient, but starting from the user is probably more efficient
-            //than mongo starting from the root of the collection
-            //Linear search will be over at most 15 or so items since the list is activley maintained
-            for (let i = 0; i<user.events_unresolved.length; i++){
-                let event = user.events_unresolved[i];
-                if (event._id == target_id){
-                    found = true;
-                    user.events_unresolved.splice(i,1);
-                }
-            }
 
-            if (found) {
-                try {
-                    await user.save();
-                    status = 200; //idk man
-                    success = true;
-                    response_message = "Successfully removed event by _id";
-                }
-                catch (err) {
-                    console.log(err);
-                    status = 400; //Figure out error codes later
-                    response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
-                }
-            }
-            else {
-                status = 201; //idk man
-                response_message = "Couldn't find event with this _id";
-            }
-
-        
-        }
-        else {
-            status = 202; //idk man
-            response_message = "User does not exist";
-        }
-    }
-    catch (err) {
-        console.log(err);
-        status = 400; //Figure out error codes later
-        response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
-    }
-    if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
-        res.status(status).json({message: response_message,  success: true});
-    }
-    else {
-        res.status(status).json({message: response_message,  success: false});
-    }
-
-}
-
-
-const update_event = async (req, res) => {
-
-    console.log('in update event');
-
-    let status = 200;
-      let response_message = "";
-      let success = false;
-      try {
-          let user = await get_user(req.params.username);
-          if (user !== null) { //If we were able to find a user
-              const target_id = req.body._id;
-                 //let result = await user_model.findOneAndDelete({"user.events_unresolved.id":target_id}).exec();
-              
-              let found = false;
-
-              console.log(req.body)
-              
-              //Not super efficient, but starting from the user is probably more efficient
-              //than mongo starting from the root of the collection
-              //Linear search will be over at most 15 or so items since the list is activley maintained
-              for (let i = 0; i<user.events_unresolved.length; i++){
-                  let event = user.events_unresolved[i];
-
-                  console.log("Current event id "+event._id+" target event id "+target_id);
-                  if (event._id == target_id){
-                        found = true;
-
-                        user.events_unresolved[i] = req.body;
-                        console.log(req.body.progress);
-                        if (req.body.progress < 100){
+                const found = () => {
+                    user.events_unresolved[i] = this.req.body;
+                        //console.log(req.body.progress);
+                        if (req.body.progress >= 100){
                             //IF YOU'RE HAVING A BUG WHERE IT DOESN"T UPDATE THIS IS PROBABLY THE SOLUTION
                             // user.events_unresolved[i] = req.body;
-                        }
-                        else {
+                            
                             user.events_unresolved.splice(i,1);
                             user.archive_event(req.body); //So that the archive will get the most recently updated version
+                            saveUser(this.req, this.res, user, this.info);
                         }
-                   }
-              }
-  
-              if (found) {
-                  try {
-                      await user.save();
-                      status = 200; //idk man
-                      success = true;
-                      response_message = "Successfully updated event by _id";
-                  }
-                  catch (err) {
-                      console.log(err);
-                      status = 400; //Figure out error codes later
-                      response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
-                  }
-              }
-              else {
-                  status = 201; //idk man
-                  response_message = "Couldn't find event with this _id";
-              }
-  
-          
-          }
-          else {
-              status = 202; //idk man
-              response_message = "User does not exist";
-          }
-      }
-      catch (err) {
-          console.log(err);
-          status = 400; //Figure out error codes later
-          response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
-      }
-      if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
-        res.status(status).json({message: response_message,  success: true});
-    }
-    else {
-        res.status(status).json({message: response_message,  success: false});
-    }
-  }
+                }
 
+                run_on_unresolved_event(this.req, this.res, user, found);
 
-
-
-const read_unresolved_events = async (req, res) => {
-
-    const username = req.params.username;
-    let success = false;
-
-    function func (user) { //When defined out here, the function gets our req and res objects from this scope
-        let status = 200;
-        let response_message = "";
-        let content = "";
-        
-        if (user !== null) { //If we were able to find a user
-
-            status = 200;
-            success = true;
-            response_message = "Returning all unresolved events for this user";
-            content = user.events_unresolved;
-        
         }
         else {
-            status = 202; //idk man
-            response_message = "User does not exist";
-        }
+            this.info.status = 202; //idk man
+            this.info.message = "User does not exist";
 
-        //return res.status(status).json({message: response_message, events: content});
-        if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
-            res.status(status).json({message: response_message, events: content, success: true});
-        }
-        else {
-            res.status(status).json({message: response_message, events: content, success: false});
+            this.res.status(this.info.status);
+            this.res.json(this.info);
         }
     }
-
-    //res = run_func_on_user( username, res, func); //Confused lexical scoping
-
-    run_func_on_user( username, func);
-   //return  run_func_on_user( username, func);
-   return res
+    get_user(req.params.username).then(success).catch(this.handle_error);
 }
 
 
-async function get_user (username) {
-    let user = await user_model.findOne({"username": username}).exec();
-    //Note: left part of json should be wrapped in quotes "" to distinguish it from the variable
-    //Also, make sure to use .exec() to ACTUALLY EXECUTE THE FUCKING QUERY MORON
+update_event.run = update_event_handler.bind(update_event);
+update_event.error_code = 400;
+update_event.error_message = "Temp";
 
-    if (user){
-        return user;
+
+
+
+
+
+let read_unresolved_events_handler = Object.create(controller_prototype);
+
+function read_unresolved_events (req, res) {
+    this.req = req;
+    this.res = res;
+
+    const success = () => {
+
+        if (user !== null) {
+            this.info.status = 200;
+            this.info.message = "Returning all unresolved events for user";
+
+            //User unresolved events will be sent under a newly added content field
+            this.info.content = user.events_unresolved;
+        }
+        else {
+            this.info.status = 202; //idk man
+            this.info.message = "User does not exist";
+        }
+        this.res.status(this.info.status);
+        this.res.json(this.info);
     }
-    else {
-        return null;
-    }
+    get_user(req.params.username).then( success ).catch (this.handle_error);
 }
+
+read_unresolved_events.run = read_unresolved_events_handler.bind(read_unresolved_events);
+read_unresolved_events.error_code = 400;
+read_unresolved_events.error_message = "Temp";
+
+
+
 
 
 
