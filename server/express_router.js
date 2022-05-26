@@ -3,33 +3,6 @@ import {controller as controller_functions} from './controller/user_controller.j
 
 const router = express.Router();
 
-//Similar syntax to saying
-// router.get('/', (req, res) => {
-//     res.send('Birds home page')
-//   })
-
-// router.route('/test')
-//     .get(
-//         (req, res, next) => {
-//            console.log("hello world express");
-        
-           
-//            return res.status(200).json({
-//                message: "Hello world express from the ec2"
-//            })
-//         }
-//     )
-//     .post(
-//         (req, res, next) => {
-//             console.log("hello world express");
-//             console.log(req);
-            
-//             return res.status(200).json({
-//                 message: "Hello world express from the ec2"
-//             })
-//          }
-//     )
-
 router.route('/register')
     .post(
         //Using post to create a new resource
@@ -45,6 +18,7 @@ router.route('/register')
 
 router.route('/auth') //Handles login/logout/cookies requests
     .post( //Post is best for login as it is most secure
+        controller_functions.load_user_by_username,
         controller_functions.login_user.run
     )
         
@@ -68,10 +42,10 @@ router.route('/user/:username/logout')
 
 
 router.route('/user/:username/events')
-        .post(controller_functions.check_session, controller_functions.add_event)
-        .delete(controller_functions.check_session, controller_functions.delete_unresolved_event)
-        .put(controller_functions.check_session, controller_functions.update_event)
-        .get(controller_functions.check_session, controller_functions.read_unresolved_events)
+        .post(controller_functions.check_session, controller_functions.add_event.run)
+        .delete(controller_functions.check_session, controller_functions.delete_unresolved_event.run)
+        .put(controller_functions.check_session, controller_functions.update_event.run)
+        .get(controller_functions.check_session, controller_functions.read_unresolved_events.run)
 
 router.route('/user/:username/archive')
         .get(controller_functions.check_session, controller_functions.read_archived_events)

@@ -30,19 +30,21 @@ async function get_user (req, res, username, info) {
     //Note: left part of json should be wrapped in quotes "" to distinguish it from the variable
     //Also, make sure to use .exec() to ACTUALLY EXECUTE THE FUCKING QUERY MORON
 
-    if (user){
-        return user;
-    }
-    else {
-        return null;
-    }
+    // if (user){
+    //     return user;
+    // }
+    // else {
+    //     return null;
+    // }
+
+    return user;
 }
 
 function run_on_unresolved_event(req, res, user, found) {
 
     const target_id = req.body._id;
     
-    let found = false;
+    let found_event = false;
 
     //Not super efficient, but starting from the user is probably more efficient
     //than mongo starting from the root of the collection
@@ -51,11 +53,11 @@ function run_on_unresolved_event(req, res, user, found) {
         let event = user.events_unresolved[i];
         if (event._id == target_id){
             found();
-            found = true;
+            found_event = true;
         }
     }
 
-    if (!found) {
+    if (!found_event) {
         this.info.status = 203; //idk man
         this.info.message = "Couldn't find event with this _id";
 

@@ -16,7 +16,6 @@ let session;
 
 
 
-
 //We'll end up with one controller object per route
 
 //Make an instance of the controller
@@ -63,34 +62,27 @@ let login_user = Object.create(controller_prototype);
 
 function login_user_handler(req, res) {
 
+    this.req = req;
+    this.res = res;
+
     let username = req.body.username;
     let pass_attempt = req.body.password;
 
-    const success = ( user ) => {
+    let user = req.user;
 
-        console.log('in login success');
-        if (user !== null) { //If we were able to find a user
-            if (user.check_pass(pass_attempt)){
-                session=req.session;
-                session.username=req.body.username; //On login we set username in the session object
-                this.info.message += "User logged in successfully";
-            }
-            else {
-                this.info.status = 201; //idk man
-                this.info.message += "User exists but password is incorrect";
-            }
-        }
-        else {
-            this.info.status = 202; //idk man
-            this.message += "User does not exist";
-        }
-
-        res.status(this.info.status);
-        res.json(this.info);
+    if (user.check_pass(pass_attempt)){
+        session=req.session;
+        session.username=req.body.username; //On login we set username in the session object
+        this.info.message += "User logged in successfully";
+    }
+    else {
+        this.info.status = 201; //idk man
+        this.info.message += "User exists but password is incorrect";
     }
 
-    //get_user(username) will pass the resulting user object to the .then()
-    get_user(username).then( success ).catch(this.handle_error);
+    this.res.status(this.info.status);
+    this.res.json(this.info);
+
 }
 
 login_user.run = login_user_handler.bind(login_user);
@@ -98,18 +90,34 @@ login_user.error_status = 402; //Couldn't find user
 login_user.error_message = "Error thrown while searching database for user. "
 
 
-
+//JUST PULL THE USER AS MIDDLEWARE YOU SILLYHEAD
 
 
 //SESSION AUTHENTICATION MIDDLEWARE
 //protects the endpoints that we need to be behind login
 const check_session = (req, res, next) => {
-    console.log('in middleware');
+    console.log('checking session');
+    console.log( session.username);
     if (session.username === req.params.username){
         next()
     }
     else {
         return res.status(400).json({message:"You are not authorized to manipulate this user's information"});
+    }
+}
+
+async function load_user_by_username (req, res, next) {
+    console.log('loading user');
+
+    let username = req.body.username;
+    let user = await user_model.findOne({"username": username}).exec();
+
+    if (user !== null) {
+        req.user = user;
+        next();
+    }
+    else {
+        return res.status(202).json({status:202, message:"User with this username doesn't exist."});
     }
 }
 
@@ -247,9 +255,9 @@ update_event.error_message = "Temp";
 
 
 
-let read_unresolved_events_handler = Object.create(controller_prototype);
+let read_unresolved_events = Object.create(controller_prototype);
 
-function read_unresolved_events (req, res) {
+function read_unresolved_events_handler (req, res) {
     this.req = req;
     this.res = res;
 
@@ -894,7 +902,7 @@ const controller = {create_user, login_user, add_event,
     add_course, read_courses, update_course, delete_course,
     read_userinfo, update_userinfo, delete_user, check_session, 
     logout_user, read_university_info, create_course_for_university, define_university,
-    read_archived_events, restore_archived_event};
+    read_archived_events, restore_archived_event, load_user_by_username};
 export {controller};
 
 
