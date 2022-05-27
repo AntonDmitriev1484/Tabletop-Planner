@@ -11,8 +11,9 @@ import {university_model, university_schema} from "../model/university_model.js"
 import controller_prototype from './prototypes/controller_prototype.js'
 
 import {saveUser, get_user, run_on_unresolved_event} from './helpers/helpers.js'
+import {check_session, load_user_by_username} from './middleware/user_middleware.js'
 
-let session;
+global.session;
 
 
 
@@ -71,8 +72,8 @@ function login_user_handler(req, res) {
     let user = req.user;
 
     if (user.check_pass(pass_attempt)){
-        session=req.session;
-        session.username=req.body.username; //On login we set username in the session object
+        global.session=req.session;
+        global.session.username=req.body.username; //On login we set username in the session object
         this.info.message += "User logged in successfully";
     }
     else {
@@ -93,38 +94,11 @@ login_user.error_message = "Error thrown while searching database for user. "
 //JUST PULL THE USER AS MIDDLEWARE YOU SILLYHEAD
 
 
-//SESSION AUTHENTICATION MIDDLEWARE
-//protects the endpoints that we need to be behind login
-const check_session = (req, res, next) => {
-    console.log('checking session');
-    console.log( session.username);
-    if (session.username === req.params.username){
-        next()
-    }
-    else {
-        return res.status(400).json({message:"You are not authorized to manipulate this user's information"});
-    }
-}
-
-async function load_user_by_username (req, res, next) {
-    console.log('loading user');
-
-    let username = req.body.username;
-    let user = await user_model.findOne({"username": username}).exec();
-
-    if (user !== null) {
-        req.user = user;
-        next();
-    }
-    else {
-        return res.status(202).json({status:202, message:"User with this username doesn't exist."});
-    }
-}
 
 const logout_user = (req, res) => {
     //Will just clear the username field of our session
     req.session.username = "";
-    session.username = "";
+    global.session.username = "";
     req.session.destroy();
 
     return res.status(200).json({message:"User has successfully been logged out", success: true});
@@ -142,23 +116,13 @@ function add_event_handler (req, res) {
     this.req = req;
     this.res = res;
 
-    const success = (user) => {
-        if (user !== null) { //If we were able to find a user
+    let user = req.user;
 
-            let homework = m.homework_model(req.body);
-            user.events_unresolved.push(homework);
+    
+    let homework = m.homework_model(req.body);
+    user.events_unresolved.push(homework);
 
-            saveUser(this.req, this.res, user, this.info);
-        }
-        else {
-            this.info.status = 202; //idk man
-            this.info.message = "User does not exist";
-
-            this.res.status(this.info.status);
-            this.res.json(this.info);
-        }
-    }
-    get_user(req.params.username).then(success).catch(this.handle_error);
+    saveUser(this.req, this.res, user, this.info);
 }
 
 add_event.run = add_event_handler.bind(add_event);
@@ -177,27 +141,14 @@ function delete_unresolved_event_handler (req, res) {
     this.req = req;
     this.res = res;
 
-    const success = (user) => {
-        if (user !== null) {
+    let user = req.user;
 
-            const found = () => {
-                user.events_unresolved.splice(i,1);
-                saveUser(this.req, this.res, user, this.info);
-            }
-
-            run_on_unresolved_event(this.req, this.res, user, found);
-
-        }
-        else {
-            this.info.status = 202; //idk man
-            this.info.message = "User does not exist";
-
-            this.res.status(this.info.status);
-            this.res.json(this.info);
-        }
-           
+    const found = (i) => {
+        user.events_unresolved.splice(i,1);
+        saveUser(this.req, this.res, user, this.info);
     }
-    get_user(req.params.username).then(success).catch(this.handle_error);
+
+    run_on_unresolved_event(this.req, this.res, user, found);
 
 }
 //I think get_user should also just handle checking if the user object is null
@@ -215,34 +166,22 @@ function update_event_handler(req, res) {
     this.req = req;
     this.res = res;
 
-    const success = (user) => {
-        if (user !== null) { //If we were able to find a user
+    let user = req.user;
 
-                const found = () => {
-                    user.events_unresolved[i] = this.req.body;
-                        //console.log(req.body.progress);
-                        if (req.body.progress >= 100){
-                            //IF YOU'RE HAVING A BUG WHERE IT DOESN"T UPDATE THIS IS PROBABLY THE SOLUTION
-                            // user.events_unresolved[i] = req.body;
-                            
-                            user.events_unresolved.splice(i,1);
-                            user.archive_event(req.body); //So that the archive will get the most recently updated version
-                            saveUser(this.req, this.res, user, this.info);
-                        }
-                }
-
-                run_on_unresolved_event(this.req, this.res, user, found);
-
-        }
-        else {
-            this.info.status = 202; //idk man
-            this.info.message = "User does not exist";
-
-            this.res.status(this.info.status);
-            this.res.json(this.info);
-        }
+    const found = (i) => {
+        user.events_unresolved[i] = this.req.body;
+            //console.log(req.body.progress);
+            if (req.body.progress >= 100){
+                //IF YOU'RE HAVING A BUG WHERE IT DOESN"T UPDATE THIS IS PROBABLY THE SOLUTION
+                // user.events_unresolved[i] = req.body;
+                
+                user.events_unresolved.splice(i,1);
+                user.archive_event(req.body); //So that the archive will get the most recently updated version
+                saveUser(this.req, this.res, user, this.info);
+            }
     }
-    get_user(req.params.username).then(success).catch(this.handle_error);
+
+    run_on_unresolved_event(this.req, this.res, user, found);
 }
 
 
@@ -261,23 +200,21 @@ function read_unresolved_events_handler (req, res) {
     this.req = req;
     this.res = res;
 
-    const success = () => {
+    console.log('reading unresovled events');
 
-        if (user !== null) {
-            this.info.status = 200;
-            this.info.message = "Returning all unresolved events for user";
+    let user = req.user;
 
-            //User unresolved events will be sent under a newly added content field
-            this.info.content = user.events_unresolved;
-        }
-        else {
-            this.info.status = 202; //idk man
-            this.info.message = "User does not exist";
-        }
-        this.res.status(this.info.status);
-        this.res.json(this.info);
-    }
-    get_user(req.params.username).then( success ).catch (this.handle_error);
+
+    this.info.status = 200;
+    this.info.message = "Returning all unresolved events for user";
+
+    //User unresolved events will be sent under a newly added content field
+    this.info.content = user.events_unresolved;
+
+
+    this.res.status(this.info.status);
+    this.res.json(this.info);
+
 }
 
 read_unresolved_events.run = read_unresolved_events_handler.bind(read_unresolved_events);

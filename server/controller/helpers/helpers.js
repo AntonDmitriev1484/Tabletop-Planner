@@ -52,7 +52,7 @@ function run_on_unresolved_event(req, res, user, found) {
     for (let i = 0; i<user.events_unresolved.length; i++){
         let event = user.events_unresolved[i];
         if (event._id == target_id){
-            found();
+            found(i);
             found_event = true;
         }
     }

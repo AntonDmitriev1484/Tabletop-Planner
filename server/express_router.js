@@ -1,24 +1,17 @@
 import express from 'express'
 import {controller as controller_functions} from './controller/user_controller.js'
+import {check_session, load_user_by_username} from './controller/middleware/user_middleware.js'
 
 const router = express.Router();
 
 router.route('/register')
     .post(
-        //Using post to create a new resource
-        //controller_functions.create_user.bind(controller_functions.test_obj)
-        
-        //Works
-        //controller_functions.create_user
-
         controller_functions.create_user.run
-
-        //controller_functions.create_user.bind(controller_functions.create_user_controller)
     )
 
 router.route('/auth') //Handles login/logout/cookies requests
     .post( //Post is best for login as it is most secure
-        controller_functions.load_user_by_username,
+        load_user_by_username,
         controller_functions.login_user.run
     )
         
@@ -27,25 +20,16 @@ router.route('/user/:username/logout')
         controller_functions.logout_user
     )
 
-
 //Here :username is a route parameter
-//We will use the unique username passed in the url, to retreive the proper
-//user model from our mongodb user collection
-//https://expressjs.com/en/guide/routing.html helps a lot
 
-//https://www.geeksforgeeks.org/express-js-router-param-function/
-//We can set up a callback function for each time a specific parameter like :username
-//appears in the url
-// router.param('username', 
-// controller_functions.user_parameter_callback
-// )
+router.use('/user/:username/events', check_session, load_user_by_username); //Sets up middleware
+router.route('/user/:username/events') //Adds specific route handlers
+        .post( controller_functions.add_event.run)
+        .delete( controller_functions.delete_unresolved_event.run)
+        .put( controller_functions.update_event.run)
+        .get( controller_functions.read_unresolved_events.run)
 
 
-router.route('/user/:username/events')
-        .post(controller_functions.check_session, controller_functions.add_event.run)
-        .delete(controller_functions.check_session, controller_functions.delete_unresolved_event.run)
-        .put(controller_functions.check_session, controller_functions.update_event.run)
-        .get(controller_functions.check_session, controller_functions.read_unresolved_events.run)
 
 router.route('/user/:username/archive')
         .get(controller_functions.check_session, controller_functions.read_archived_events)
