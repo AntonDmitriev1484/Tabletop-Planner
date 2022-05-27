@@ -36,11 +36,12 @@ router.route('/user/:username/archive')
         .post(controller_functions.check_session, controller_functions.restore_archived_event)
 
 
+router.use('/user/:username/courses', check_session, load_user_by_username); //Sets up middleware
 router.route('/user/:username/courses') //'course' used here, will be dealing with pcourse objects in mongodb
-        .post(controller_functions.check_session, controller_functions.add_course)
-        .get(controller_functions.check_session, controller_functions.read_courses)
-        .put(controller_functions.check_session, controller_functions.update_course)
-        .delete(controller_functions.check_session, controller_functions.delete_course);
+        .post(controller_functions.add_course.run)
+        .get(controller_functions.read_courses.run)
+        .put(controller_functions.update_course.run)
+        .delete(controller_functions.delete_course.run);
         //should also feature a request / some way to archive a course
 
 
