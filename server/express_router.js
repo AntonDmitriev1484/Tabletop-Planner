@@ -30,10 +30,11 @@ router.route('/user/:username/events') //Adds specific route handlers
         .get( controller_functions.read_unresolved_events.run)
 
 
-
+//Need to do
+router.use('/user/:username/archive', check_session, load_user_by_username); //Sets up middleware
 router.route('/user/:username/archive')
-        .get(controller_functions.check_session, controller_functions.read_archived_events)
-        .post(controller_functions.check_session, controller_functions.restore_archived_event)
+        .get(controller_functions.read_archived_events.run)
+        .post(controller_functions.restore_archived_event.run)
 
 
 router.use('/user/:username/courses', check_session, load_user_by_username); //Sets up middleware
@@ -45,12 +46,18 @@ router.route('/user/:username/courses') //'course' used here, will be dealing wi
         //should also feature a request / some way to archive a course
 
 
+router.use('/user/:username', check_session, load_user_by_username); //Sets up middleware       
 router.route('/user/:username')
-        .get(controller_functions.read_userinfo) //Get user doesnt really need authentification since it provides so little information
-        .put(controller_functions.check_session, controller_functions.update_userinfo)
-        .delete(controller_functions.check_session, controller_functions.delete_user);
+        .get(controller_functions.read_userinfo.run) //Get user doesnt really need authentification since it provides so little information
+        .put(controller_functions.update_userinfo.run)
+        .delete(controller_functions.delete_user.run);
 
 
+
+
+
+
+        
 
 //To add a new university to the database
 router.route('/university')
@@ -62,5 +69,7 @@ router.route('/university/:universityname/courselist')
         .get(controller_functions.read_university_info)
         .post(controller_functions.create_course_for_university)
         .delete()
+
+
 
 export {router}
