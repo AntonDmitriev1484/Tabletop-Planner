@@ -6,16 +6,12 @@ let m = mongoose.models;
 import connect from '../../connect_mongo.js';
 import {user_model} from '../model/user_model.js'
 import {event_archive_model, event_archive_schema} from "../model/event_archive_model.js"
-import {university_model, university_schema} from "../model/university_model.js"
 
 import controller_prototype from './prototypes/controller_prototype.js'
 
-import {saveUser, get_user, run_on_unresolved_event, saveArchive} from './helpers/helpers.js'
-import {check_session, load_user_by_username} from './middleware/user_middleware.js'
+import {saveUser, run_on_unresolved_event, saveArchive} from './helpers/helpers.js'
 
 global.session;
-
-
 
 //We'll end up with one controller object per route
 
@@ -151,7 +147,6 @@ function delete_unresolved_event_handler (req, res) {
     run_on_unresolved_event(this.req, this.res, user, found);
 
 }
-//I think get_user should also just handle checking if the user object is null
 
 delete_unresolved_event.run = delete_unresolved_event_handler.bind(delete_unresolved_event);
 delete_unresolved_event.error_code = 400;
@@ -531,161 +526,10 @@ restore_archived_event.run = restore_archived_event_handler.bind(restore_archive
 
 
 
-
-
-
-const define_university = async (req, res) => {
-    // let university_name = req.params.universityname;
-    let university = university_model(req.body);
-    let status  = 200;
-    let response_message = "";
-
-    try {
-            await university.save();
-            status = 200;
-            response_message = "University has been successfully created";
-
-        }
-        catch (err){
-            console.log(err);
-            status = 400; //Figure out error codes later
-            response_message = "Error Name: "+err.name+".\n Error Message: "+err.message;
-        
-    }
-
-    if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
-        res.status(status).json({message: response_message, success: true});
-    }
-    else {
-        res.status(status).json({message: response_message, success: false});
-    }
-    return res;
-}
-
-const read_university_info = async (req,res) => {
-    let university_name = req.params.universityname.replaceAll("_"," ");
-    //the .replace undoes changes made on the frontend to the string so that it could
-    //be sent through the url
-    console.log(university_name);
-    let status = 200;
-    let body = {message:"", content:""};
-
-
-    let model = university_model;
-
-    const query = {"name":university_name};
-
-
-    const found = (university) => {
-        console.log('in found');
-        body.content = university;
-
-        console.log(body.content);
-        status = 200; //idk man
-        body.message = "Returning all information about this university";
-    }
-
-    const not_found = (err) => {
-        console.log(err);
-        status = 400; //Figure out error codes later
-        body.message = "Error Name: "+err.name+".\n Error Message: "+err.message;
-    }
-
-    await fetch_from_db(model, query, found, not_found);
-
-    if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
-        body.success = true;
-    }
-    else {
-       body.success = false;
-    }
-
-    res.status(status).json(body);
-}
-
-
-const create_course_for_university = async (req,res) => {
-    let university_name = req.params.universityname.replaceAll("_"," ");
-    let status = 200;
-    let body = {message:""};
-
-
-    let model = university_model;
-
-    console.log(university_name);
-    const query = {"name":university_name};
-
-
-    const found = async (university) => {
-
-        let course = m.course_model(req.body.course);
-        university.courses.push(course);
-
-        university.save();
-
-        status = 200; //idk man
-        body.message = "Course has successfully been added to this university";
-    }
-
-    const not_found = (err) => {
-        console.log("Not found");
-        
-        body.message = "Not found";
-    }
-
-    await fetch_from_db(model, query, found, not_found);
-
-    if (status === 200){ //TEMPORARY FIX TO BAD ERROR CODES
-        body.success = true;
-    }
-    else {
-       body.success = false;
-    }
-
-    res.status(status).json(body);
-}
-
-
-
-
-
-
-const fetch_from_db = async (model, query, found, not_found) => {
-    try {
-        console.log(query);
-         let data = await model.findOne(query);
-         if (data !== null) {
-            found(data);
-            try {
-               await data.save();
-            }
-            catch (err) {
-                console.log(err);
-            }
-         }
-         else {
-             not_found("Not found");
-         }
-
-    }
-    catch (err) {
-        console.log(err);
-        status = 400; //Figure out error codes later
-        body.message = "Error Name: "+err.name+".\n Error Message: "+err.message;
-        // not_found(err);
-    }
-}
-
-
-
-
-
-
-
 const controller = {create_user, login_user, add_event, 
     delete_unresolved_event, update_event, read_unresolved_events, 
     add_course, read_courses, update_course, delete_course,
-    read_userinfo, update_userinfo, delete_user, check_session, 
-    logout_user, read_university_info, create_course_for_university, define_university,
-    read_archived_events, restore_archived_event, load_user_by_username};
+    read_userinfo, update_userinfo, delete_user, 
+    logout_user, read_archived_events, restore_archived_event};
+    
 export {controller};

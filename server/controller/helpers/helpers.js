@@ -47,21 +47,21 @@ const saveArchive = (req, res, archive, info) => { //Assuming that this is the l
 }
 
 
-async function get_user (req, res, username, info) {
+// async function get_user (req, res, username, info) {
 
-    let user = await user_model.findOne({"username": username}).exec();
-    //Note: left part of json should be wrapped in quotes "" to distinguish it from the variable
-    //Also, make sure to use .exec() to ACTUALLY EXECUTE THE FUCKING QUERY MORON
+//     let user = await user_model.findOne({"username": username}).exec();
+//     //Note: left part of json should be wrapped in quotes "" to distinguish it from the variable
+//     //Also, make sure to use .exec() to ACTUALLY EXECUTE THE FUCKING QUERY MORON
 
-    // if (user){
-    //     return user;
-    // }
-    // else {
-    //     return null;
-    // }
+//     // if (user){
+//     //     return user;
+//     // }
+//     // else {
+//     //     return null;
+//     // }
 
-    return user;
-}
+//     return user;
+// }
 
 function run_on_unresolved_event(req, res, user, found) {
 
@@ -91,4 +91,4 @@ function run_on_unresolved_event(req, res, user, found) {
 }
 
 
-export {saveUser, get_user, run_on_unresolved_event, saveArchive}
+export {saveUser, run_on_unresolved_event, saveArchive}
