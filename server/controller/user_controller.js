@@ -25,20 +25,16 @@ function create_user_handler(req,res) {
     this.req = req;
     this.res = res;
 
-    let event_archive = new event_archive_model();
+    const event_archive = req.event_archive;
 
-    const success = () => {
-        let user = new user_model(req.body);
+    this.info.message += "Event archived added. "
 
-        //Gives each new user a ref to their event_archive
-        user.event_archive = event_archive.id;
+    let user = new user_model(req.body);
 
-        this.info.message += "Event archived added. "
+    //Gives each new user a ref to their event_archive
+    user.event_archive = event_archive.id;
 
-        saveUser(this.req, this.res, user, this.info);
-    }
-
-    event_archive.save().then( success ).catch( this.handle_error )
+    saveUser(this.req, this.res, user, this.info);
 
 }
 
@@ -138,13 +134,19 @@ function delete_unresolved_event_handler (req, res) {
     this.res = res;
 
     let user = req.user;
+    let event_index = req.event_index;
 
-    const found = (i) => {
-        user.events_unresolved.splice(i,1);
-        saveUser(this.req, this.res, user, this.info);
-    }
+    user.events_unresolved.splice(event_index,1);
 
-    run_on_unresolved_event(this.req, this.res, user, found);
+    this.info.message += "Event successfully deleted. ";
+    saveUser(this.req, this.res, user, this.info);
+
+    // const found = (i) => {
+    //     user.events_unresolved.splice(i,1);
+    //     saveUser(this.req, this.res, user, this.info);
+    // }
+
+    // run_on_unresolved_event(this.req, this.res, user, found);
 
 }
 
@@ -162,21 +164,37 @@ function update_event_handler(req, res) {
     this.res = res;
 
     let user = req.user;
+    let event_index = req.event_index;
 
-    const found = (i) => {
-        user.events_unresolved[i] = this.req.body;
-            //console.log(req.body.progress);
-            if (req.body.progress >= 100){
+
+    user.events_unresolved[event_index] = this.req.body;
+
+    if (this.req.body.progress >= 100){
                 //IF YOU'RE HAVING A BUG WHERE IT DOESN"T UPDATE THIS IS PROBABLY THE SOLUTION
                 // user.events_unresolved[i] = req.body;
                 
-                user.events_unresolved.splice(i,1);
-                user.archive_event(req.body); //So that the archive will get the most recently updated version
-                saveUser(this.req, this.res, user, this.info);
-            }
+        user.events_unresolved.splice(event_index,1);
+        user.archive_event(this.req.body); //So that the archive will get the most recently updated version
+
     }
 
-    run_on_unresolved_event(this.req, this.res, user, found);
+    saveUser(this.req, this.res, user, this.info);
+
+
+    // const found = (i) => {
+    //     user.events_unresolved[i] = this.req.body;
+    //         //console.log(req.body.progress);
+    //         if (this.req.body.progress >= 100){
+    //             //IF YOU'RE HAVING A BUG WHERE IT DOESN"T UPDATE THIS IS PROBABLY THE SOLUTION
+    //             // user.events_unresolved[i] = req.body;
+                
+    //             user.events_unresolved.splice(i,1);
+    //             user.archive_event(this.req.body); //So that the archive will get the most recently updated version
+    //             saveUser(this.req, this.res, user, this.info);
+    //         }
+    // }
+
+    // run_on_unresolved_event(this.req, this.res, user, found);
 }
 
 
@@ -195,13 +213,10 @@ function read_unresolved_events_handler (req, res) {
     this.req = req;
     this.res = res;
 
-    console.log('reading unresolved events');
 
     let user = req.user;
 
-
-    this.info.status = 200;
-    this.info.message = "Returning all unresolved events for user";
+    this.info.message = "Returning all unresolved events for user.";
 
     //User unresolved events will be sent under a newly added content field
     this.info.content = user.events_unresolved;
@@ -270,27 +285,32 @@ function update_course_handler(req, res) {
 
     this.req = req;
     this.res =res;
+
     let user = req.user;
 
-    const target_id = req.body._id;
-                 //let result = await user_model.findOneAndDelete({"user.events_unresolved.id":target_id}).exec();
-              
-    let found = false;
+    let course_index = req.course_index;
 
-    for (let i = 0; i<user.courses_current.length; i++){
-        let course = user.courses_current[i];
-            if (course._id == target_id){
-                found = true;
-                user.courses_current[i] = req.body;
-            }
-    }
+    // let target_id = req.body.target_id;
+    // let found = false;
 
-    if (found === false) {
-        this.info.message += "Couldn't find course with this _id. "
-    }
-    else {
-        this.info.message += "Successfully updated course with this _id. "
-    }
+    // for (let i = 0; i<user.courses_current.length; i++){
+    //     let course = user.courses_current[i];
+    //         if (course._id == target_id){
+    //             found = true;
+    //             user.courses_current[i] = req.body;
+    //         }
+    // }
+
+    // if (found === false) {
+    //     this.info.message += "Couldn't find course with this _id. "
+    // }
+    // else {
+    //     this.info.message += "Successfully updated course with this _id. "
+    // }
+
+    user.courses_current[course_index] = req.body;
+    this.info.message += "Successfully updated course with this _id. "
+    
 
     saveUser(this.req, this.res, user, this.info);
 
@@ -309,27 +329,32 @@ function delete_course_handler (req, res) {
     this.res = res;
 
     let user = req.user;
+    let course_index = req.course_index;
 
-    const target_id = req.body._id;
-    //let result = await user_model.findOneAndDelete({"user.events_unresolved.id":target_id}).exec();
+    user.courses_current.splice(course_index, 1);
+
+    // const target_id = req.body._id;
+    // //let result = await user_model.findOneAndDelete({"user.events_unresolved.id":target_id}).exec();
  
-    //Soon outsource this to a helper function which will have it's own error value for not being able to find a course by some _id
-    let found = false;
-    for (let i = 0; i<user.courses_current.length; i++){
-        let event = user.courses_current[i];
-        if (event._id == target_id){
-            found = true;
-            user.courses_current.splice(i,1);
-        }
-    }
+    // //Soon outsource this to a helper function which will have it's own error value for not being able to find a course by some _id
+    // let found = false;
+    // for (let i = 0; i<user.courses_current.length; i++){
+    //     let event = user.courses_current[i];
+    //     if (event._id == target_id){
+    //         found = true;
+    //         user.courses_current.splice(i,1);
+    //     }
+    // }
 
-    if (found === false) {
-        this.info.message += "Couldn't find course with this _id. "
-    }
-    else {
-        this.info.message += "Successfully deleted course with this _id. "
-    }
+    // if (found === false) {
+    //     this.info.message += "Couldn't find course with this _id. "
+    // }
+    // else {
+    //     this.info.message += "Successfully deleted course with this _id. "
+    // }
 
+    this.info.message += "Successfully deleted course with this _id. "
+   
     saveUser(this.req, this.res, user, this.info);
 
 }
@@ -434,35 +459,43 @@ function read_archived_events_handler (req, res) {
     this.res = res;
 
     let user = req.user;
+    let event_archive = req.event_archive;
 
-    const archive_id = user.event_archive;
+    this.info.message += "Found event archive. ";
 
-    const success = (archive) => {
-        this.info.message = "Found event archive. ";
-
-        this.info.content = archive.past_events;
+    this.info.content = event_archive.past_events;
         
-        this.res.status(this.info.status);
-        this.res.json(this.info);
-    }
+    this.res.status(this.info.status);
+    this.res.json(this.info);
 
-    const failure = (err) => {
+    // const archive_id = user.event_archive;
 
-        console.log(err);
+    // const success = (archive) => {
+    //     this.info.message += "Found event archive. ";
 
-        this.info.message = "Failed to find event archive. ";
-
-        this.info.status = 400; //idk temp
+    //     this.info.content = archive.past_events;
         
-        this.res.status(this.info.status);
-        this.res.json(this.info);
-    }
+    //     this.res.status(this.info.status);
+    //     this.res.json(this.info);
+    // }
 
-    //Can make finding the event archive middleware you dingus!!!
+    // const failure = (err) => {
 
-    event_archive_model.findOne({"_id":archive_id}).exec()
-    .then(success)
-    .catch (failure)
+    //     console.log(err);
+
+    //     this.info.message = "Failed to find event archive. ";
+
+    //     this.info.status = 400; //idk temp
+        
+    //     this.res.status(this.info.status);
+    //     this.res.json(this.info);
+    // }
+
+    // //Can make finding the event archive middleware you dingus!!!
+
+    // event_archive_model.findOne({"_id":archive_id}).exec()
+    // .then(success)
+    // .catch (failure)
 }
 
 read_archived_events.run = read_archived_events_handler.bind(read_archived_events);
@@ -479,12 +512,10 @@ function restore_archived_event_handler (req, res) {
     this.res = res;
     
     let user = req.user;
-    const archive_id = user.event_archive;
-    //console.log('restore_id in func '+restore_id);
+    let event_archive = req.event_archive;
 
-    const success = (archive) => {
-        let i=0;
-        archive.past_events.forEach((event)=> {
+    let i=0;
+    event_archive.past_events.forEach((event)=> {
 
             if (event._id.toString() === restore_id){ //Changing from '===' to '=='
 
@@ -493,25 +524,43 @@ function restore_archived_event_handler (req, res) {
                
             }
             i++;
-        })
+    })
 
         saveArchive(this.req, this.res, archive, this.info);
-    }
 
-    const failure = (err) => {
-        console.log(err);
+    // const archive_id = user.event_archive;
+    // //console.log('restore_id in func '+restore_id);
 
-        this.info.status = 400;
-        this.info.message = "Couldn't find associated archive";
+    // const success = (archive) => {
+    //     let i=0;
+    //     archive.past_events.forEach((event)=> {
 
-        this.res.status(this.info.status);
-        this.res.json(this.info);
+    //         if (event._id.toString() === restore_id){ //Changing from '===' to '=='
 
-    }
+    //             archive.past_events.splice(i,1);
+    //             user.restore_event(event); //User adds event back to unresolved then saves itself
+               
+    //         }
+    //         i++;
+    //     })
 
-     event_archive_model.findOne({"_id":archive_id}).exec()
-            .then(success)
-            .catch (failure)
+    //     saveArchive(this.req, this.res, archive, this.info);
+    // }
+
+    // const failure = (err) => {
+    //     console.log(err);
+
+    //     this.info.status = 400;
+    //     this.info.message = "Couldn't find associated archive";
+
+    //     this.res.status(this.info.status);
+    //     this.res.json(this.info);
+
+    // }
+
+    //  event_archive_model.findOne({"_id":archive_id}).exec()
+    //         .then(success)
+    //         .catch (failure)
 
 }
 
@@ -531,5 +580,5 @@ const controller = {create_user, login_user, add_event,
     add_course, read_courses, update_course, delete_course,
     read_userinfo, update_userinfo, delete_user, 
     logout_user, read_archived_events, restore_archived_event};
-    
+
 export {controller};
