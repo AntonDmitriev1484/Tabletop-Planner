@@ -23,6 +23,29 @@ const saveUser = (req, res, user, info) => { //Assuming that this is the last th
     })
 }
 
+const saveArchive = (req, res, archive, info) => { //Assuming that this is the last thing we call in most of our controllers
+
+    archive.save().then( () => {
+        info.message += "Archive has been successfully saved. "
+
+        res.status(info.status)
+        res.json(info);
+
+        info.reset();
+    })
+    .catch((err) => {
+        console.log(err);
+
+        info.status = 403; //idk something different from user save
+        info.message += "Archive save failed. ";
+        
+        res.status(info.status)
+        res.json(info);
+
+        info.reset();
+    })
+}
+
 
 async function get_user (req, res, username, info) {
 
@@ -68,4 +91,4 @@ function run_on_unresolved_event(req, res, user, found) {
 }
 
 
-export {saveUser, get_user, run_on_unresolved_event}
+export {saveUser, get_user, run_on_unresolved_event, saveArchive}

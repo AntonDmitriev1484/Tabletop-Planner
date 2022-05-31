@@ -10,7 +10,7 @@ import {university_model, university_schema} from "../model/university_model.js"
 
 import controller_prototype from './prototypes/controller_prototype.js'
 
-import {saveUser, get_user, run_on_unresolved_event} from './helpers/helpers.js'
+import {saveUser, get_user, run_on_unresolved_event, saveArchive} from './helpers/helpers.js'
 import {check_session, load_user_by_username} from './middleware/user_middleware.js'
 
 global.session;
@@ -463,6 +463,8 @@ function read_archived_events_handler (req, res) {
         this.res.json(this.info);
     }
 
+    //Can make finding the event archive middleware you dingus!!!
+
     event_archive_model.findOne({"_id":archive_id}).exec()
     .then(success)
     .catch (failure)
@@ -472,6 +474,8 @@ read_archived_events.run = read_archived_events_handler.bind(read_archived_event
 
 
 
+
+//Hopefully this will work, no idea though!!!
 
 let restore_archived_event = Object.create( controller_prototype);
 
@@ -483,39 +487,36 @@ function restore_archived_event_handler (req, res) {
     const archive_id = user.event_archive;
     //console.log('restore_id in func '+restore_id);
 
-    
-            // try {
-            //     let archive = await event_archive_model.findOne({"_id":archive_id}).exec();
-                
-            //     //Find this user's archive
-            //     //Then iterate over each archived event until
-            //     //you find the one with a matching id
+    const success = (archive) => {
+        let i=0;
+        archive.past_events.forEach((event)=> {
 
-            //     let i=0;
-            //     archive.past_events.forEach((event)=> {
+            if (event._id.toString() === restore_id){ //Changing from '===' to '=='
 
-            //         if (event._id.toString() === restore_id){ //Changing from '===' to '=='
+                archive.past_events.splice(i,1);
+                user.restore_event(event); //User adds event back to unresolved then saves itself
+               
+            }
+            i++;
+        })
 
-            //             archive.past_events.splice(i,1);
-            //             user.restore_event(event); //User adds event back to unresolved then saves itself
-                       
-            //         }
-            //         i++;
-            //     })
+        saveArchive(this.req, this.res, archive, this.info);
+    }
 
-                
-            //     await archive.save(); //archive saves itself
+    const failure = (err) => {
+        console.log(err);
 
-            //     status = 200;
-            //     success = true;
-            //     response_message = "Archived event has been restored and moved to user's urnesolved list";
-            //     content = archive.past_events;
-                
-            // }
-            // catch (err) {
-            //     status = 400; //idk man
-            //     response_message = "SOmething went wrong lmao";
-            // }
+        this.info.status = 400;
+        this.info.message = "Couldn't find associated archive";
+
+        this.res.status(this.info.status);
+        this.res.json(this.info);
+
+    }
+
+     event_archive_model.findOne({"_id":archive_id}).exec()
+            .then(success)
+            .catch (failure)
 
 }
 
