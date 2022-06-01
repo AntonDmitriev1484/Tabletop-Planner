@@ -3,17 +3,25 @@ import {event_archive_model, event_archive_schema} from "../../model/event_archi
 
 import USER_ERR from '../errors/user_errors.js'
 
+global.session;
+
 //Session authentication
-const check_session = (req, res, next) => {
+const check_session = (req, res, next) => { // DOESN'T WORK
     console.log('checking session');
 
-    if (global.session.username === req.params.username){
-        next()
-    }
-    else {
-        res.status(USER_ERR.FAILED_SESSION_CHECK.code);
-        res.json({message: USER_ERR.FAILED_SESSION_CHECK.message});
-    }
+    next();
+
+    // console.log(global);
+    // console.log(global.session.username);
+    // console.log(req.params.username);
+
+    // if (global.session.username === req.params.username){
+    //     next()
+    // }
+    // else {
+    //     res.status(USER_ERR.FAILED_SESSION_CHECK.code);
+    //     res.json({message: USER_ERR.FAILED_SESSION_CHECK.message});
+    // }
 }
 
 

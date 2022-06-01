@@ -1,6 +1,5 @@
 
-export default 
-USER_ERR = {
+const USER_ERR = {
 
     //Client request errors (400);
     INCORRECT_PASS: {
@@ -46,3 +45,5 @@ USER_ERR = {
 
 
 };
+
+export default USER_ERR;

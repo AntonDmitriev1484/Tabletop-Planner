@@ -2,7 +2,7 @@ import express from 'express'
 
 import {check_session, load_user_by_username, create_event_archive,
     find_unresolved_event, find_current_course, load_event_archive} from './controller/middleware/user_middleware.js'
-import {controller as user_controller} from './controller/user_controller.js'
+import {controllers as user_controller} from './controller/user_controller.js'
 
 import {define_university, read_university_info, create_course_for_university} from './controller/uni_controller.js'
 

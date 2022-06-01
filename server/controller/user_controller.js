@@ -8,15 +8,18 @@ import {user_model} from '../model/user_model.js'
 import {event_archive_model, event_archive_schema} from "../model/event_archive_model.js"
 
 import controller_prototype from './prototypes/controller_prototype.js'
+import {controller} from './prototypes/controller.js'
 
 import {saveUser, saveArchive} from './helpers/helpers.js'
+
+import USER_ERR from './errors/user_errors.js'
 
 global.session;
 
 //We'll end up with one controller object per route
 
 //Make an instance of the controller
-let create_user = Object.create(controller_prototype);
+let create_user = new controller();
 
 //Create a controller function which will be run in the context of this object
 //So they don't really work by themselves, but only when bound to a controller
@@ -36,22 +39,20 @@ function create_user_handler(req,res) {
 
     saveUser(this.req, this.res, user, this.info);
 
-}
+} 
 
 
-create_user.run = create_user_handler.bind(create_user);
+create_user.run = create_user_handler.bind(create_user); //X
 //Simply setting the function doesn't do anything, you have to bind it
 
-//Set properties of the instance, ex. what error_status this controller should send out, what error_message it should have
-create_user.error_status = 400;
-create_user.error_message = "Couldn't create archive";
 
 
 
 
 
 
-let login_user = Object.create(controller_prototype);
+//let login_user = new controller();
+let login_user = new controller();
 
 function login_user_handler(req, res) {
 
@@ -69,8 +70,8 @@ function login_user_handler(req, res) {
         this.info.message += "User logged in successfully";
     }
     else {
-        this.info.status = 201; //idk man
-        this.info.message += "User exists but password is incorrect";
+        this.info.status = USER_ERR.INCORRECT_PASS.code;
+        this.info.message += USER_ERR.INCORRECT_PASS.message;
     }
 
     this.res.status(this.info.status);
@@ -78,16 +79,14 @@ function login_user_handler(req, res) {
 
 }
 
-login_user.run = login_user_handler.bind(login_user);
-login_user.error_status = 402; //Couldn't find user
-login_user.error_message = "Error thrown while searching database for user. "
-
-
-//JUST PULL THE USER AS MIDDLEWARE YOU SILLYHEAD
+login_user.run = login_user_handler.bind(login_user); //X
 
 
 
-const logout_user = (req, res) => {
+
+
+
+const logout_user = (req, res) => { //X
     //Will just clear the username field of our session
     req.session.username = "";
     global.session.username = "";
@@ -99,14 +98,22 @@ const logout_user = (req, res) => {
 
 
 
+//Are these both scoped into the exact same object
+//We should never be getting the login success message spliced with an add_event success message
+//If these are truly different instances.
 
+//let add_event = new controller();
+//add_event.test = "b"
 
-let add_event = Object.create(controller_prototype);
+let add_event = new controller();
 
 function add_event_handler (req, res) {
 
     this.req = req;
     this.res = res;
+
+    console.log("From event handler");
+    console.log("Add event test: "+this.test+" "+"Login test: "+login_user.test);
 
     let user = req.user;
 
@@ -119,14 +126,12 @@ function add_event_handler (req, res) {
 
 add_event.run = add_event_handler.bind(add_event);
 
-add_event.error_status = 402; //Couldn't find user
-add_event.error_message = "Error thrown while searching database for user. ";
 
 
 
 
 
-let delete_unresolved_event = Object.create(controller_prototype);
+let delete_unresolved_event = new controller();
 
 function delete_unresolved_event_handler (req, res) {
 
@@ -151,13 +156,12 @@ function delete_unresolved_event_handler (req, res) {
 }
 
 delete_unresolved_event.run = delete_unresolved_event_handler.bind(delete_unresolved_event);
-delete_unresolved_event.error_code = 400;
-delete_unresolved_event.error_message = "Temp";
 
 
 
 
-let update_event = Object.create(controller_prototype);
+
+let update_event = new controller();
 
 function update_event_handler(req, res) {
     this.req = req;
@@ -199,15 +203,14 @@ function update_event_handler(req, res) {
 
 
 update_event.run = update_event_handler.bind(update_event);
-update_event.error_code = 400;
-update_event.error_message = "Temp";
 
 
 
 
 
 
-let read_unresolved_events = Object.create(controller_prototype);
+
+let read_unresolved_events = new controller();
 
 function read_unresolved_events_handler (req, res) {
     this.req = req;
@@ -228,14 +231,13 @@ function read_unresolved_events_handler (req, res) {
 }
 
 read_unresolved_events.run = read_unresolved_events_handler.bind(read_unresolved_events);
-read_unresolved_events.error_code = 400;
-read_unresolved_events.error_message = "Temp";
 
 
 
 
 
-let add_course = Object.create(controller_prototype);
+
+let add_course = new controller();
 
 function add_course_handler (req, res) {
     this.req = req;
@@ -256,7 +258,7 @@ add_course.run = add_course_handler.bind(add_course);
 
 
 
-let read_courses = Object.create(controller_prototype);
+let read_courses = new controller();
 
 function read_courses_handler (req, res) {
 
@@ -279,7 +281,7 @@ read_courses.run = read_courses_handler.bind(read_courses);
 
 
 
-let update_course = Object.create(controller_prototype);
+let update_course = new controller();
 
 function update_course_handler(req, res) {
 
@@ -321,7 +323,7 @@ update_course.run = update_course_handler.bind(update_course);
 
 
 
-let delete_course = Object.create(controller_prototype);
+let delete_course = new controller();
 
 function delete_course_handler (req, res) {
 
@@ -364,7 +366,7 @@ delete_course.run = delete_course_handler.bind(delete_course);
 
 
 
-let read_userinfo = Object.create(controller_prototype);
+let read_userinfo = new controller();
 
 function read_userinfo_handler(req, res) {
 
@@ -392,7 +394,7 @@ read_userinfo.run = read_userinfo_handler.bind(read_userinfo);
 //Doesn't really do ANYTHING
 //Might add more functionality to this as I build the game aspect
 
-let update_userinfo = Object.create(controller_prototype);
+let update_userinfo = new controller();
 
 function update_userinfo_handler (req, res) {
 
@@ -412,7 +414,7 @@ update_userinfo.run = update_userinfo_handler.bind(update_userinfo);
 
 
 
-let delete_user = Object.create(controller_prototype);
+let delete_user = new controller();
 
 function delete_user_handler (req, res) {
 
@@ -452,7 +454,7 @@ delete_user.run = delete_user_handler.bind(delete_user);
 
 
 
-let read_archived_events = Object.create(controller_prototype);
+let read_archived_events = new controller();
 
 function read_archived_events_handler (req, res) {
     this.req = req;
@@ -575,10 +577,10 @@ restore_archived_event.run = restore_archived_event_handler.bind(restore_archive
 
 
 
-const controller = {create_user, login_user, add_event, 
+const controllers = {create_user, login_user, add_event, 
     delete_unresolved_event, update_event, read_unresolved_events, 
     add_course, read_courses, update_course, delete_course,
     read_userinfo, update_userinfo, delete_user, 
     logout_user, read_archived_events, restore_archived_event};
 
-export {controller};
+export {controllers};
