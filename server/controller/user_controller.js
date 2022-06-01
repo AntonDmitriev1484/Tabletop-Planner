@@ -9,7 +9,7 @@ import {event_archive_model, event_archive_schema} from "../model/event_archive_
 
 import controller_prototype from './prototypes/controller_prototype.js'
 
-import {saveUser, run_on_unresolved_event, saveArchive} from './helpers/helpers.js'
+import {saveUser, saveArchive} from './helpers/helpers.js'
 
 global.session;
 

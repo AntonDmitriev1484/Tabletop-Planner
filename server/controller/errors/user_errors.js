@@ -19,7 +19,7 @@ USER_ERR = {
         code: 404,
         message: "Requested unresolved event by this _id doesn't exist."
     },
-    FAILED_TO_FIND_COURSE: {
+    FAILED_TO_FIND_CURRENT_COURSE: {
         code: 405,
         message: "Requested current course by this _id doesn't exist."
     },
@@ -42,6 +42,7 @@ USER_ERR = {
         message: "Internal Sever Error: Save operation on event archive mongoose model failed."
     }
     
+    //Possibly need to incorporate two cases for user / archive deletion failure
 
 
 };

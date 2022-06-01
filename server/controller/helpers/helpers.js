@@ -1,5 +1,7 @@
 import {user_model} from '../../model/user_model.js'
 
+import USER_ERR from '../errors/user_errors.js'
+
 const saveUser = (req, res, user, info) => { //Assuming that this is the last thing we call in most of our controllers
 
     user.save().then( () => {
@@ -12,12 +14,9 @@ const saveUser = (req, res, user, info) => { //Assuming that this is the last th
     })
     .catch((err) => {
         console.log(err);
-
-        info.status = 400;
-        info.message += "User save failed. ";
         
-        res.status(info.status)
-        res.json(info);
+        res.status(USER_ERR.FAILED_TO_SAVE_USER.code)
+        res.json({message: USER_ERR.FAILED_TO_SAVE_USER.message});
 
         info.reset();
     })
@@ -36,11 +35,8 @@ const saveArchive = (req, res, archive, info) => { //Assuming that this is the l
     .catch((err) => {
         console.log(err);
 
-        info.status = 403; //idk something different from user save
-        info.message += "Archive save failed. ";
-        
-        res.status(info.status)
-        res.json(info);
+        res.status(USER_ERR.FAILED_TO_SAVE_EVENT_ARCHIVE.code)
+        res.json({message: USER_ERR.FAILED_TO_SAVE_EVENT_ARCHIVE.message});
 
         info.reset();
     })
@@ -91,4 +87,4 @@ function run_on_unresolved_event(req, res, user, found) {
 }
 
 
-export {saveUser, run_on_unresolved_event, saveArchive}
+export {saveUser, saveArchive}

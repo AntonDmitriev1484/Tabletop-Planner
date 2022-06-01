@@ -1,22 +1,45 @@
 import {user_model} from '../../model/user_model.js'
 import {event_archive_model, event_archive_schema} from "../../model/event_archive_model.js"
 
-
+import USER_ERR from '../errors/user_errors.js'
 
 //Session authentication
 const check_session = (req, res, next) => {
     console.log('checking session');
+
     if (global.session.username === req.params.username){
         next()
     }
     else {
-        return res.status(400).json({message:"You are not authorized to manipulate this user's information"});
+        res.status(USER_ERR.FAILED_SESSION_CHECK.code);
+        res.json({message: USER_ERR.FAILED_SESSION_CHECK.message});
     }
 }
 
 
 
-async function load_user_by_username (req, res, next) {
+// async function load_user_by_username (req, res, next) {
+//     console.log('loading user');
+
+//     let username = req.body.username; //When we login username is in the body of the request
+
+//     if (req.body.username === undefined) {
+//         username = req.params.username; //Otherwise, its a route parameter
+//     }
+
+
+//     let user = await user_model.findOne({"username": username}).exec();
+
+//     if (user !== null) {
+//         req.user = user;
+//         next();
+//     }
+//     else {
+//         return res.status(202).json({status:202, message:"User with this username doesn't exist."});
+//     }
+// }
+
+function load_user_by_username (req, res, next) {
     console.log('loading user');
 
     let username = req.body.username; //When we login username is in the body of the request
@@ -25,16 +48,27 @@ async function load_user_by_username (req, res, next) {
         username = req.params.username; //Otherwise, its a route parameter
     }
 
+    user_model.findOne({"username": username}).exec()
+    .then(
+        (user) => {
+            if (user !== null) {
+                req.user = user;
+                next();
+            }
+            else {
+                res.status(USER_ERR.FAILED_TO_FIND_USER.code);
+                res.json({message: USER_ERR.FAILED_TO_FIND_USER.message});
+            }
+        }
+    )
+    .catch(
+        (err) => {
+            console.log(err);
 
-    let user = await user_model.findOne({"username": username}).exec();
-
-    if (user !== null) {
-        req.user = user;
-        next();
-    }
-    else {
-        return res.status(202).json({status:202, message:"User with this username doesn't exist."});
-    }
+            res.status(USER_ERR.USER_QUERY_FAILED.code);
+            res.json({message: USER_ERR.USER_QUERY_FAILED.message});
+        }
+    )
 }
 
 function create_event_archive (req, res, next) {
@@ -52,8 +86,10 @@ function create_event_archive (req, res, next) {
      )
      .catch( 
         (err) => {
-            res.status(400);
-            res.json();
+            console.log(err);
+
+            res.status(USER_ERR.FAILED_TO_SAVE_EVENT_ARCHIVE.code);
+            res.json({message: USER_ERR.FAILED_TO_SAVE_EVENT_ARCHIVE.message});
         } 
      )
 
@@ -112,8 +148,8 @@ async function find_unresolved_event (req, res, next) {
     )
 
     if (!found){
-        res.status(400);
-        res.json();
+        res.status(USER_ERR.FAILED_TO_FIND_UNRESOLVED_EVENT.code);
+        res.json({message: USER_ERR.FAILED_TO_FIND_UNRESOLVED_EVENT.message});
     }
 }
 
@@ -137,8 +173,8 @@ async function find_current_course (req, res, next) {
     )
 
     if (!found){
-        res.status(400);
-        res.json();
+        res.status(USER_ERR.FAILED_TO_FIND_CURRENT_COURSE.code);
+        res.json({message: USER_ERR.FAILED_TO_FIND_CURRENT_COURSE.message});
     }
 
 }
@@ -157,8 +193,8 @@ async function load_event_archive(req, res, next) {
     )
     .catch (
         (err) => {
-            res.status(400);
-            res.json();
+            res.status(USER_ERR.EVENT_ARCHIVE_QUERY_FAILED.code);
+            res.json({message: USER_ERR.EVENT_ARCHIVE_QUERY_FAILED.message});
         }
     )
 }
