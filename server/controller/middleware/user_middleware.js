@@ -9,43 +9,21 @@ global.session;
 const check_session = (req, res, next) => { // DOESN'T WORK
     console.log('checking session');
 
-    next();
-
-    // console.log(global);
-    // console.log(global.session.username);
-    // console.log(req.params.username);
-
-    // if (global.session.username === req.params.username){
-    //     next()
-    // }
-    // else {
-    //     res.status(USER_ERR.FAILED_SESSION_CHECK.code);
-    //     res.json({message: USER_ERR.FAILED_SESSION_CHECK.message});
-    // }
+    if (global.session !== undefined) {
+        if (global.session.username === req.params.username){
+            next()
+        }
+        else {
+            res.status(USER_ERR.FAILED_SESSION_CHECK.code);
+            res.json({message: USER_ERR.FAILED_SESSION_CHECK.message});
+        }
+    }
+    else { //If there is no active session throw an error
+        res.status(USER_ERR.FAILED_SESSION_CHECK.code);
+        res.json({message: USER_ERR.FAILED_SESSION_CHECK.message});
+    }
 }
 
-
-
-// async function load_user_by_username (req, res, next) {
-//     console.log('loading user');
-
-//     let username = req.body.username; //When we login username is in the body of the request
-
-//     if (req.body.username === undefined) {
-//         username = req.params.username; //Otherwise, its a route parameter
-//     }
-
-
-//     let user = await user_model.findOne({"username": username}).exec();
-
-//     if (user !== null) {
-//         req.user = user;
-//         next();
-//     }
-//     else {
-//         return res.status(202).json({status:202, message:"User with this username doesn't exist."});
-//     }
-// }
 
 function load_user_by_username (req, res, next) {
     console.log('loading user');
@@ -108,39 +86,6 @@ async function find_unresolved_event (req, res, next) {
     const target_id = req.body._id;
 
     const user = req.user;
-    
-    // let found_event = [];
-
-    //Not super efficient, but starting from the user is probably more efficient
-    //than mongo starting from the root of the collection
-    //Linear search will be over at most 15 or so items since the list is activley maintained
-    // for (let i = 0; i<user.events_unresolved.length; i++){
-    //     let event = user.events_unresolved[i];
-    //     if (event._id == target_id){
-
-    //         found(i);
-    //         found_event = true;
-    //     }
-    // }
-
-
-    //found_event will be set to an array which will only contain
-    //the single (or none) event which matches the target_id
-
-    // found_event = user.events_unresolved.filter(
-    //     (event) => {
-    //         return event._id == target_id;
-    // ``  }
-    // )
-
-    // if (!found_event) {
-    //     this.info.status = 203; //idk man
-    //     this.info.message = "Couldn't find event with this _id";
-
-    //     this.res.status(this.info.status);
-    //     this.res.json(this.info);
-    // }
-
 
     let index = 0;
     let found = false;

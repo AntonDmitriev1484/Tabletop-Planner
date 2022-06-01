@@ -77,16 +77,17 @@ function login_user_handler(req, res) {
     this.res.status(this.info.status);
     this.res.json(this.info);
 
+    this.info.reset();
 }
 
-login_user.run = login_user_handler.bind(login_user); //X
+login_user.run = login_user_handler.bind(login_user); 
 
 
 
 
 
 
-const logout_user = (req, res) => { //X
+const logout_user = (req, res) => { 
     //Will just clear the username field of our session
     req.session.username = "";
     global.session.username = "";
@@ -98,12 +99,6 @@ const logout_user = (req, res) => { //X
 
 
 
-//Are these both scoped into the exact same object
-//We should never be getting the login success message spliced with an add_event success message
-//If these are truly different instances.
-
-//let add_event = new controller();
-//add_event.test = "b"
 
 let add_event = new controller();
 
@@ -112,14 +107,13 @@ function add_event_handler (req, res) {
     this.req = req;
     this.res = res;
 
-    console.log("From event handler");
-    console.log("Add event test: "+this.test+" "+"Login test: "+login_user.test);
-
     let user = req.user;
 
     
     let homework = m.homework_model(req.body);
     user.events_unresolved.push(homework);
+    
+    this.info.message += "Added event to list of unresolved events. ";
 
     saveUser(this.req, this.res, user, this.info);
 }
@@ -146,12 +140,6 @@ function delete_unresolved_event_handler (req, res) {
     this.info.message += "Event successfully deleted. ";
     saveUser(this.req, this.res, user, this.info);
 
-    // const found = (i) => {
-    //     user.events_unresolved.splice(i,1);
-    //     saveUser(this.req, this.res, user, this.info);
-    // }
-
-    // run_on_unresolved_event(this.req, this.res, user, found);
 
 }
 
@@ -182,23 +170,9 @@ function update_event_handler(req, res) {
 
     }
 
+    this.info.message += "Unresolved event has been updated. ";
+
     saveUser(this.req, this.res, user, this.info);
-
-
-    // const found = (i) => {
-    //     user.events_unresolved[i] = this.req.body;
-    //         //console.log(req.body.progress);
-    //         if (this.req.body.progress >= 100){
-    //             //IF YOU'RE HAVING A BUG WHERE IT DOESN"T UPDATE THIS IS PROBABLY THE SOLUTION
-    //             // user.events_unresolved[i] = req.body;
-                
-    //             user.events_unresolved.splice(i,1);
-    //             user.archive_event(this.req.body); //So that the archive will get the most recently updated version
-    //             saveUser(this.req, this.res, user, this.info);
-    //         }
-    // }
-
-    // run_on_unresolved_event(this.req, this.res, user, found);
 }
 
 
@@ -292,24 +266,6 @@ function update_course_handler(req, res) {
 
     let course_index = req.course_index;
 
-    // let target_id = req.body.target_id;
-    // let found = false;
-
-    // for (let i = 0; i<user.courses_current.length; i++){
-    //     let course = user.courses_current[i];
-    //         if (course._id == target_id){
-    //             found = true;
-    //             user.courses_current[i] = req.body;
-    //         }
-    // }
-
-    // if (found === false) {
-    //     this.info.message += "Couldn't find course with this _id. "
-    // }
-    // else {
-    //     this.info.message += "Successfully updated course with this _id. "
-    // }
-
     user.courses_current[course_index] = req.body;
     this.info.message += "Successfully updated course with this _id. "
     
@@ -334,26 +290,6 @@ function delete_course_handler (req, res) {
     let course_index = req.course_index;
 
     user.courses_current.splice(course_index, 1);
-
-    // const target_id = req.body._id;
-    // //let result = await user_model.findOneAndDelete({"user.events_unresolved.id":target_id}).exec();
- 
-    // //Soon outsource this to a helper function which will have it's own error value for not being able to find a course by some _id
-    // let found = false;
-    // for (let i = 0; i<user.courses_current.length; i++){
-    //     let event = user.courses_current[i];
-    //     if (event._id == target_id){
-    //         found = true;
-    //         user.courses_current.splice(i,1);
-    //     }
-    // }
-
-    // if (found === false) {
-    //     this.info.message += "Couldn't find course with this _id. "
-    // }
-    // else {
-    //     this.info.message += "Successfully deleted course with this _id. "
-    // }
 
     this.info.message += "Successfully deleted course with this _id. "
    
@@ -417,6 +353,7 @@ update_userinfo.run = update_userinfo_handler.bind(update_userinfo);
 let delete_user = new controller();
 
 function delete_user_handler (req, res) {
+    //Also want this to delete the event archive associated with the user
 
     this.req = req;
     this.res = res;
@@ -470,34 +407,6 @@ function read_archived_events_handler (req, res) {
     this.res.status(this.info.status);
     this.res.json(this.info);
 
-    // const archive_id = user.event_archive;
-
-    // const success = (archive) => {
-    //     this.info.message += "Found event archive. ";
-
-    //     this.info.content = archive.past_events;
-        
-    //     this.res.status(this.info.status);
-    //     this.res.json(this.info);
-    // }
-
-    // const failure = (err) => {
-
-    //     console.log(err);
-
-    //     this.info.message = "Failed to find event archive. ";
-
-    //     this.info.status = 400; //idk temp
-        
-    //     this.res.status(this.info.status);
-    //     this.res.json(this.info);
-    // }
-
-    // //Can make finding the event archive middleware you dingus!!!
-
-    // event_archive_model.findOne({"_id":archive_id}).exec()
-    // .then(success)
-    // .catch (failure)
 }
 
 read_archived_events.run = read_archived_events_handler.bind(read_archived_events);
@@ -505,7 +414,7 @@ read_archived_events.run = read_archived_events_handler.bind(read_archived_event
 
 
 
-//Hopefully this will work, no idea though!!!
+//Doesn't work. Do later!
 
 let restore_archived_event = Object.create( controller_prototype);
 
@@ -516,19 +425,23 @@ function restore_archived_event_handler (req, res) {
     let user = req.user;
     let event_archive = req.event_archive;
 
+    let restore_id = req.body._id;
+
     let i=0;
     event_archive.past_events.forEach((event)=> {
 
             if (event._id.toString() === restore_id){ //Changing from '===' to '=='
 
-                archive.past_events.splice(i,1);
+                event_archive.past_events.splice(i,1);
                 user.restore_event(event); //User adds event back to unresolved then saves itself
                
             }
             i++;
     })
 
-        saveArchive(this.req, this.res, archive, this.info);
+    //Also need to actually save user!!!!
+
+        saveArchive(this.req, this.res, event_archive, this.info);
 
     // const archive_id = user.event_archive;
     // //console.log('restore_id in func '+restore_id);
