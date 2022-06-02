@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 // const {model, Schema} = mongoose;
 
-import {course_model, course_schema} from "./course_model.js";
+import {listing_model, listing_schema} from "./listing_model.js";
 
 
 const university_schema = new mongoose.Schema(
@@ -11,8 +11,8 @@ const university_schema = new mongoose.Schema(
             unique: true,
             required: "University name is required"
         },
-        courses: [
-            course_schema
+        listings: [
+            listing_schema
         ],
     },
     { 

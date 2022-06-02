@@ -1,39 +1,30 @@
+
 import mongoose from "mongoose";
 
-//Had a problem here: whenever you call deconstruct into {model, Schema} in earlier files, it would say that course_model already
-//exists even though it definitley does not and JavaScript is the most moronic fucking language known to man
-//I think this has something to do with the order in which I'm declaring and exporting the models
+import {listing_model, listing_schema} from "./listing_model.js";
+
 
 const course_schema = new mongoose.Schema(
   {
-        name: { 
-            type: String,
-            required: "Course name is required"
+        listing: {
+            type:listing_schema,
+            required: true
         },
-        dept_name: {
-            type: String,
-            //required: "Department name is required"
-        },
-        dept_code: {
-            type: String,
-            required: "Department code is required"
-        },
-        course_code: {
-            type: String,
-            required: "Course code is required"
-        },
+
         description: {
-            type: String
+            type: String,
+
         },
-        //Also add course_tag, files_links
+        note: {
+            type: String,
+
+        },
+
     },
 
 );
 
 //https://mongoosejs.com/docs/subdocs.html
 
-
-const  course_model =  mongoose.model("course_model", course_schema);
-
-  
+const course_model = mongoose.model("course_model", course_schema);
 export {course_model, course_schema};

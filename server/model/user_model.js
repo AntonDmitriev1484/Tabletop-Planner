@@ -4,8 +4,10 @@ const {model, Schema} = mongoose;
 import crypto from "crypto";
 import { timeStamp } from "console";
 
-import {homework_model, homework_schema} from "./homework_model.js"
-import {pcourse_model, pcourse_schema} from "./pcourse_model.js"
+// import {homework_model, homework_schema} from "./schoolwork/homework_model.js"
+import { schoolwork_model, schoolwork_schema } from "./schoolwork/schoolwork_model.js";
+
+import {course_model, course_schema} from "./course_model.js"
 import {university_model, university_schema} from "./university_model.js" //Necessary to compile university_model before using it in index.js
 import {event_archive_model, event_archive_schema} from "./event_archive_model.js"
 
@@ -26,9 +28,6 @@ let user_schema = new Schema(
         unique: true,
         required: "Username is required"
     },
-    username_num_code: { //Discord style, adding a unique 4 digit code to each user, so that users can have the same username
-        type: Number,
-    },
     email: {
         type: String,
         required: "Email is required"
@@ -41,33 +40,29 @@ let user_schema = new Schema(
     salt: {
         type: String
     },
+
     first_name: { 
         type: String, 
     },
     last_name: { 
         type: String,
     },
-    semester: { 
-        type: Number
+
+    events: {
+        //Split arrays pattern
+        active: [],
+        past: {type: mongoose.Schema.ObjectId}, //ref to an event archive
     },
 
-    events_unresolved: [ 
-        homework_schema
-    ],
-    //This can probably stay as an array because at any given time you will have less than 20 homework assignments
-    //Unresolved events will be embedded, to decrease look-up times for that week
-
-    event_archive: {type: mongoose.Schema.ObjectId},
-
-    courses_current: [
-        pcourse_schema
-    ],
-
-    course_archive: {type: mongoose.Schema.ObjectId},
+    courses: {
+        //Split arrays pattern
+        active: [],
+        past: {type: mongoose.Schema.ObjectId}, //ref to some course archive, could also easily be an array
+    },
 
     university: {type: mongoose.Schema.ObjectId},
 
-  },
+    },
 
     { 
       collection: 'user' 
@@ -148,7 +143,10 @@ user_schema.methods = {
     },
 
     archive_event: async function(target) {
-        const event_archive_id = this.event_archive;
+
+        //Basically just copies an active event to the event archive attached to this user object
+
+        const event_archive_id = this.event.past;
 
         let event_archive = await event_archive_model.findOne({"_id":event_archive_id}).exec();
         
@@ -165,18 +163,13 @@ user_schema.methods = {
     },
 
     restore_event: async function (target) {
+        //Given an event object as a parameter
 
         target.progress = 0; //Resets progress back to 0
-        this.events_unresolved.push(target);
+        this.events.active.push(target);
 
         await this.save();
     }
-
-    // add_homework: function(homework) {
-    //     //Expected parameter is a homework model object
-    //     this.events_unresolved.push(homework);
-
-    // },
 
     //MongoDB model objects already provide an updateOne function
     //https://www.codementor.io/@prasadsaya/working-with-arrays-in-mongodb-16s303gkd3
@@ -186,13 +179,6 @@ user_schema.methods = {
 
 const user_model = model("user_model", user_schema);
 
-// user_model.on('username', function(err) {
-//     if (err) {
-//         console.error('User index error: %s', err);
-//     } else {
-//         console.info('User indexing complete');
-//     }
-// });
 
 export {user_model};
 

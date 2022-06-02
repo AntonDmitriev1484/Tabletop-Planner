@@ -1,11 +1,11 @@
 
 import mongoose from "mongoose";
-import {homework_model, homework_schema} from "./homework_model.js"
+import {schoolwork_model, schoolwork_schema} from "./schoolwork/schoolwork_model.js"
 
 const event_archive_schema = new mongoose.Schema(
-  {
+    {
         past_events: [
-            homework_schema
+            schoolwork_schema
         ]
     },
     {
