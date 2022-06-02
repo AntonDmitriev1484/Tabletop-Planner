@@ -9,10 +9,11 @@
   "author": "Anton Dmitriev",
   "license": "ISC",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.17.3",
+    "express-session": "^1.17.3",
     "mongoose": "^6.2.10",
     "react": "^18.0.0"
   },
-    "type": "module"
-
+  "type": "module"
 }

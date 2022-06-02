@@ -6,8 +6,9 @@ import mongoose from 'mongoose';
 
 function connect() {
 
-    const mongo_cli = new MongoClient("mongodb://localhost:27017/creative_project_db");
+    const mongo_cli = new MongoClient("mongodb://localhost:27017/tabletop");
     //Gives us a client through which we can now interact with mongodb
+    //Localhosted from the EC2 instance, the port mongodb runs on?
 
     try {
         mongo_cli.connect();
@@ -18,9 +19,9 @@ function connect() {
 
 
     mongoose.Promise = global.Promise;
-    mongoose.connect("mongodb://localhost:27017/creative_project_db");
+    mongoose.connect("mongodb://localhost:27017/tabletop");
     mongoose.connection.on('error', () => {
-        throw new Error ('unable to connect to creative_project_db');
+        throw new Error ('unable to connect to tabletop database');
     })
 
     return mongo_cli;
