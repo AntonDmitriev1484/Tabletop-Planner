@@ -35,14 +35,15 @@ function create_user_handler(req,res) {
     let user = new user_model(req.body);
 
     //Gives each new user a ref to their event_archive
-    user.event_archive = event_archive.id;
+    user.events.past = event_archive._id;
+    console.log(user.courses.past);
 
     saveUser(this.req, this.res, user, this.info);
 
 } 
 
 
-create_user.run = create_user_handler.bind(create_user); //X
+create_user.run = create_user_handler.bind(create_user);
 //Simply setting the function doesn't do anything, you have to bind it
 
 
@@ -110,10 +111,31 @@ function add_event_handler (req, res) {
     let user = req.user;
 
     
-    let homework = m.homework_model(req.body);
-    user.events_unresolved.push(homework);
+    let schoolwork = m.schoolwork_model(req.body);
+
+    switch(req.body.type) {
+        //Might not be necessary, but I think this at least enforces
+        //that the format is correct before setting schoolwork.work property
+        case "homework":
+            schoolwork.work = m.homework_model(req.body.work);
+            break;
+        case "exam":
+            schoolwork.work = m.exam_model(req.body.work);
+            break;
+        case "project":
+            schoolwork.work = m.project_model(req.body.work);
+            break;
+        case "paper":
+            schoolwork.work = m.paper_model(req.body.work);
+            break;
+        default:
+            break;
+      }
+    //let homework = m.homework_model(req.body);
+
+    user.events.active.push(schoolwork);
     
-    this.info.message += "Added event to list of unresolved events. ";
+    this.info.message += "Added event to list of active events. ";
 
     saveUser(this.req, this.res, user, this.info);
 }
@@ -135,7 +157,7 @@ function delete_unresolved_event_handler (req, res) {
     let user = req.user;
     let event_index = req.event_index;
 
-    user.events_unresolved.splice(event_index,1);
+    user.events.active.splice(event_index,1);
 
     this.info.message += "Event successfully deleted. ";
     saveUser(this.req, this.res, user, this.info);
@@ -146,7 +168,7 @@ function delete_unresolved_event_handler (req, res) {
 delete_unresolved_event.run = delete_unresolved_event_handler.bind(delete_unresolved_event);
 
 
-
+//Stopped here to change middleware
 
 
 let update_event = new controller();
@@ -159,18 +181,18 @@ function update_event_handler(req, res) {
     let event_index = req.event_index;
 
 
-    user.events_unresolved[event_index] = this.req.body;
+    user.events.active[event_index] = this.req.body;
 
-    if (this.req.body.progress >= 100){
+    if (this.req.body.work.progress >= 100){
                 //IF YOU'RE HAVING A BUG WHERE IT DOESN"T UPDATE THIS IS PROBABLY THE SOLUTION
                 // user.events_unresolved[i] = req.body;
                 
-        user.events_unresolved.splice(event_index,1);
+        user.events.active.splice(event_index,1);
         user.archive_event(this.req.body); //So that the archive will get the most recently updated version
 
     }
 
-    this.info.message += "Unresolved event has been updated. ";
+    this.info.message += "Active event has been updated. ";
 
     saveUser(this.req, this.res, user, this.info);
 }
@@ -196,7 +218,7 @@ function read_unresolved_events_handler (req, res) {
     this.info.message = "Returning all unresolved events for user.";
 
     //User unresolved events will be sent under a newly added content field
-    this.info.content = user.events_unresolved;
+    this.info.content = user.events.active;
 
 
     this.res.status(this.info.status);
@@ -219,8 +241,8 @@ function add_course_handler (req, res) {
 
     let user = req.user;
     
-    let pcourse = new m.pcourse_model(req.body);
-    user.courses_current.push(pcourse);
+    let course = new m.course_model(req.body);
+    user.courses.active.push(course);
 
     this.info.message += "Course added successfully. "
 
@@ -242,7 +264,7 @@ function read_courses_handler (req, res) {
     let user = req.user;
 
     this.info.message = "Returning all current courses for this user.";
-    this.info.content = user.courses_current;
+    this.info.content = user.courses.active;
 
     res.status(this.info.status);
     res.json(this.info);
@@ -266,7 +288,7 @@ function update_course_handler(req, res) {
 
     let course_index = req.course_index;
 
-    user.courses_current[course_index] = req.body;
+    user.courses.active[course_index] = req.body;
     this.info.message += "Successfully updated course with this _id. "
     
 
@@ -289,7 +311,7 @@ function delete_course_handler (req, res) {
     let user = req.user;
     let course_index = req.course_index;
 
-    user.courses_current.splice(course_index, 1);
+    user.courses.active.splice(course_index, 1);
 
     this.info.message += "Successfully deleted course with this _id. "
    
@@ -391,6 +413,7 @@ delete_user.run = delete_user_handler.bind(delete_user);
 
 
 
+
 let read_archived_events = new controller();
 
 function read_archived_events_handler (req, res) {
@@ -439,43 +462,9 @@ function restore_archived_event_handler (req, res) {
             i++;
     })
 
-    //Also need to actually save user!!!!
+    //Also need to actually save user!!!! //Actually maybe dont???
 
         saveArchive(this.req, this.res, event_archive, this.info);
-
-    // const archive_id = user.event_archive;
-    // //console.log('restore_id in func '+restore_id);
-
-    // const success = (archive) => {
-    //     let i=0;
-    //     archive.past_events.forEach((event)=> {
-
-    //         if (event._id.toString() === restore_id){ //Changing from '===' to '=='
-
-    //             archive.past_events.splice(i,1);
-    //             user.restore_event(event); //User adds event back to unresolved then saves itself
-               
-    //         }
-    //         i++;
-    //     })
-
-    //     saveArchive(this.req, this.res, archive, this.info);
-    // }
-
-    // const failure = (err) => {
-    //     console.log(err);
-
-    //     this.info.status = 400;
-    //     this.info.message = "Couldn't find associated archive";
-
-    //     this.res.status(this.info.status);
-    //     this.res.json(this.info);
-
-    // }
-
-    //  event_archive_model.findOne({"_id":archive_id}).exec()
-    //         .then(success)
-    //         .catch (failure)
 
 }
 

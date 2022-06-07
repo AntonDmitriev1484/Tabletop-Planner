@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { course_model, course_schema } from "../course_model.js";
+import {subtask_model, subtask_schema} from "./subtask_model.js";
 
 const exam_schema = new mongoose.Schema(
   {
@@ -27,7 +28,7 @@ const exam_schema = new mongoose.Schema(
     },
 
     subtasks: [
-
+        subtask_schema
     ]
 
     },

@@ -146,7 +146,7 @@ user_schema.methods = {
 
         //Basically just copies an active event to the event archive attached to this user object
 
-        const event_archive_id = this.event.past;
+        const event_archive_id = this.events.past;
 
         let event_archive = await event_archive_model.findOne({"_id":event_archive_id}).exec();
         

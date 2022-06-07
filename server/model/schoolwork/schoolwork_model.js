@@ -1,5 +1,10 @@
 import mongoose from "mongoose";
 import { course_model, course_schema } from "../course_model.js";
+import { homework_model, homework_schema } from "../schoolwork/homework_model.js";
+import { exam_model, exam_schema } from "../schoolwork/exam_model.js";
+import { project_model, project_schema } from "../schoolwork/project_model.js";
+import { paper_model, paper_schema } from "../schoolwork/paper_model.js";
+
 
 const schoolwork_schema = new mongoose.Schema(
   {
@@ -31,16 +36,25 @@ const schoolwork_schema = new mongoose.Schema(
     },
 
 
-    types: {
+    // types: {
+    //     type: String,
+    //     required: true,
+    //     enum: ['homework_model','exam_model','project_model','paper_model'], //These names match syntax of how mongoose I a made my modules
+    // },
+
+    type: {
         type: String,
-        required: true,
-        enum: ['homework_model','exam_model','project_model','paper_model'], //These names match syntax of how mongoose I a made my modules
+        default: "homework",
     },
 
     work: {
-        type: mongoose.Schema.Types.ObjectId,
-        refPath: 'types',
+        type: mongoose.Mixed,
     }
+
+//     const Any = new Schema({ any: {} });
+// const Any = new Schema({ any: Object });
+// const Any = new Schema({ any: Schema.Types.Mixed });
+// const Any = new Schema({ any: mongoose.Mixed });
 
 
     },

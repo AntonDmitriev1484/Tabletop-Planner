@@ -3,10 +3,10 @@ import { course_model, course_schema } from "../course_model.js";
 
 const homework_schema = new mongoose.Schema(
   {
-    type: {
-        type: String,
-        default: "homework",
-    },
+    // type: {
+    //     type: String,
+    //     default: "homework",
+    // },
     
     dt_due: { 
         type: Date,

@@ -89,7 +89,7 @@ async function find_unresolved_event (req, res, next) {
 
     let index = 0;
     let found = false;
-    user.events_unresolved.forEach(
+    user.events.active.forEach(
         (event) => {
             if (event._id == target_id) {
                 found = true;
@@ -114,7 +114,7 @@ async function find_current_course (req, res, next) {
     let index = 0;
     let found = false;
 
-    user.courses_current.forEach(
+    user.courses.active.forEach(
         (course) => {
             if (course._id == target_id) {
                 found = true;
@@ -135,13 +135,23 @@ async function find_current_course (req, res, next) {
 async function load_event_archive(req, res, next) {
 
     let user = req.user;
-    let archive_id = user.event_archive;
+    let archive_id = user.events.past;
+
+    console.log(archive_id);
 
     event_archive_model.findOne({"_id":archive_id}).exec()
     .then(
         (archive) => {
-            req.event_archive = archive;
-            next();
+            console.log(archive)
+            if (archive !== null) {
+                req.event_archive = archive;
+                next();
+            }
+            else { //Mongodb couldnt find archive with this id
+                //Needs a new error object, failed to find archive event by id
+                res.status(USER_ERR.EVENT_ARCHIVE_QUERY_FAILED.code);
+                res.json({message: USER_ERR.EVENT_ARCHIVE_QUERY_FAILED.message});
+            }
         }
     )
     .catch (

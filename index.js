@@ -21,9 +21,9 @@ import {user_model} from "./server/model/user_model.js";
 import cors from 'cors'
 
 mongoose.Promise = global.Promise;
-mongoose.connect("mongodb://localhost:27017/creative_project_db");
+mongoose.connect("mongodb://localhost:27017/tabletop");
 mongoose.connection.on('error', () => {
-    throw new Error ('unable to connect to creative_project_db');
+    throw new Error ('Unable to connect to database');
 })
 
 
