@@ -529,15 +529,50 @@ function archive_completed_events_handler (req, res) {
             event = active_events.splice(i,1);
             user.archive_event(event); //So that the archive will get the most recently updated version
        
-
         }
-        else {
-
-        }
-
 
     }
 }
+
+
+
+
+let hoist_incomplete_events = Object.create( controller_prototype);
+
+function hoist_incomplete_events_handler (req, res) {
+    //Hoists all incompleted active events to some
+    //Keeps them as active, since they are incomplete
+    //Requires dt_focus to be in the body
+
+    this.req = req;
+    this.res = res;
+
+    let user = req.user; //Need to go through user load middleware
+
+    let active_events = user.events.active;
+    let event;
+
+    let hoist_date_str = req.body.dt_focus;
+
+    for (let i = 0; i< active_events.length; i++) {
+
+        event = active_events[i];
+        
+        if (!(event.work.progress >= 100 || event.work.complete)) {
+            
+            event.dt_focus = new Date(hoist_date_str);
+        }
+
+    }
+
+    user.markModified('events.active'); //Apparently you have to do this?
+
+    saveUser(this.req, this.res, user, this.info);
+
+}
+
+hoist_incomplete_events.run = hoist_incomplete_events.bind(hoist_incomplete_events)
+
 
 
 const controllers = {create_user, login_user, add_event, 
