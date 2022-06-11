@@ -183,14 +183,14 @@ function update_event_handler(req, res) {
 
     user.events.active[event_index] = this.req.body;
 
-    if (this.req.body.work.progress >= 100){
-                //IF YOU'RE HAVING A BUG WHERE IT DOESN"T UPDATE THIS IS PROBABLY THE SOLUTION
-                // user.events_unresolved[i] = req.body;
+    // if (this.req.body.work.progress >= 100){
+    //             //IF YOU'RE HAVING A BUG WHERE IT DOESN"T UPDATE THIS IS PROBABLY THE SOLUTION
+    //             // user.events_unresolved[i] = req.body;
                 
-        user.events.active.splice(event_index,1);
-        user.archive_event(this.req.body); //So that the archive will get the most recently updated version
+    //     user.events.active.splice(event_index,1);
+    //     user.archive_event(this.req.body); //So that the archive will get the most recently updated version
 
-    }
+    // }
 
     this.info.message += "Active event has been updated. ";
 
@@ -509,7 +509,35 @@ function shift_incomplete_events_handler (req, res) {
 shift_incomplete_events.run = shift_incomplete_events_handler.bind(shift_incomplete_events);
 
 
+let archive_completed_events = Object.create( controller_prototype);
 
+function archive_completed_events_handler (req, res) {
+    this.req = req;
+    this.res = res;
+
+    let user = req.user;
+    let event_archive = req.event_archive;
+
+    let active_events = user.events.active;
+
+    for (let i = 0; i< active_events.length; i++) {
+
+        let event = active_events[i];
+
+        if (event.work.progress >= 100 || event.work.complete) {
+            
+            event = active_events.splice(i,1);
+            user.archive_event(event); //So that the archive will get the most recently updated version
+       
+
+        }
+        else {
+
+        }
+
+
+    }
+}
 
 
 const controllers = {create_user, login_user, add_event, 
