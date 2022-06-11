@@ -154,11 +154,13 @@ user_schema.methods = {
         // console.log(event_archive.past_events);
 
         const D = new Date().toISOString();
-        target.date_time_archived = D;
+        target.dt_archived = D;
 
         // target.date_time_archived = D.getMonth()+'/'+D.getDay()+'/'+D.getFullYear();
 
         event_archive.past_events.push(target);
+        event_archive.markModified('past_events'); //Apparently you have to do this?
+        
         await event_archive.save();
     },
 

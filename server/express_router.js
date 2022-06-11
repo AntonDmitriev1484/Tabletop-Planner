@@ -36,7 +36,10 @@ router.route('/user/:username/events') //Adds specific route handlers
 //For testing shifting dates up appropriatley
 router.use('/user/:username/events/shift', check_session, load_user_by_username, load_event_archive);
 router.route('/user/:username/events/shift')
-        .get( user_controller.shift_incomplete_events.run);
+        .get( user_controller.shift_incomplete_events.run)
+        .post (user_controller.shift_incomplete_events.run)
+        .put (user_controller.archive_completed_events.run);
+
 
 
         

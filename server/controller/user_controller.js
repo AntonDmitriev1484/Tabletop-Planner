@@ -526,13 +526,17 @@ function archive_completed_events_handler (req, res) {
 
         if (event.work.progress >= 100 || event.work.complete) {
             
-            event = active_events.splice(i,1);
+            active_events.splice(i,1);
             user.archive_event(event); //So that the archive will get the most recently updated version
-       
+        
         }
 
     }
+
+    saveUser(this.req, this.res, user, this.info);
 }
+
+archive_completed_events.run = archive_completed_events_handler.bind(archive_completed_events)
 
 
 
@@ -571,7 +575,7 @@ function hoist_incomplete_events_handler (req, res) {
 
 }
 
-hoist_incomplete_events.run = hoist_incomplete_events.bind(hoist_incomplete_events)
+hoist_incomplete_events.run = hoist_incomplete_events_handler.bind(hoist_incomplete_events)
 
 
 
@@ -580,6 +584,6 @@ const controllers = {create_user, login_user, add_event,
     add_course, read_courses, update_course, delete_course,
     read_userinfo, update_userinfo, delete_user, 
     logout_user, read_archived_events, restore_archived_event,
-    shift_incomplete_events};
+    shift_incomplete_events, archive_completed_events, hoist_incomplete_events};
 
 export {controllers};
