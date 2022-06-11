@@ -464,16 +464,49 @@ function restore_archived_event_handler (req, res) {
 
     //Also need to actually save user!!!! //Actually maybe dont???
 
-        saveArchive(this.req, this.res, event_archive, this.info);
+    saveArchive(this.req, this.res, event_archive, this.info);
 
 }
 
 restore_archived_event.run = restore_archived_event_handler.bind(restore_archived_event);
 
 
+let shift_incomplete_events = Object.create( controller_prototype);
+
+function shift_incomplete_events_handler (req, res) {
+
+    this.req = req;
+    this.res = res;
+
+    let user = req.user;
+    let event_archive = req.event_archive;
+
+    let current_date = new Date();
+
+    for (let i = 0 ; i < user.events.active.length; i++){
+
+        let due_date = new Date(user.events.active[i].work.dt_due); //Passing in the ISO string to the constructor
+        
+        console.log(current_date.toString())
+        console.log(due_date.toString())
 
 
+        if (current_date > due_date) {
+            if (user.events.active[i].work.progress < 100) {
+                user.events.active[i].dt_focus = current_date.toISOString();
+            }
+        }
+    }
+    
+    user.markModified('events.active'); //Apparently you have to do this?
+    //for it to save. But why specifically now? I don't really understand
+    //it works fine for all of update_event
 
+    saveUser(this.req, this.res, user, this.info);
+
+}
+
+shift_incomplete_events.run = shift_incomplete_events_handler.bind(shift_incomplete_events);
 
 
 
@@ -483,6 +516,7 @@ const controllers = {create_user, login_user, add_event,
     delete_unresolved_event, update_event, read_unresolved_events, 
     add_course, read_courses, update_course, delete_course,
     read_userinfo, update_userinfo, delete_user, 
-    logout_user, read_archived_events, restore_archived_event};
+    logout_user, read_archived_events, restore_archived_event,
+    shift_incomplete_events};
 
 export {controllers};

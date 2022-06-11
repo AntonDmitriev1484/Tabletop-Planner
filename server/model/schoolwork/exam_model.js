@@ -9,7 +9,7 @@ const exam_schema = new mongoose.Schema(
         default: "exam",
     },
     
-    dt_take: { 
+    dt_due: { 
         type: Date,
         default: Date.now 
     },

@@ -19,6 +19,12 @@ const schoolwork_schema = new mongoose.Schema(
     dt_archived: { //Will only be set once the assignment has been archived
         type: Date
     },
+    dt_focus: { 
+        //This will change as you swap the event between days
+        //This will automatically update to the current date if schoolwork is incomplete
+        type: Date,
+        default: Date.now
+    },
 
 
     description: {
