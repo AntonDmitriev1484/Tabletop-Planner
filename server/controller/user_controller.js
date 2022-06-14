@@ -208,7 +208,8 @@ update_event.run = update_event_handler.bind(update_event);
 
 let read_unresolved_events = new controller();
 
-function read_unresolved_events_handler (req, res) {
+function read_unresolved_events_handler (req, res, next) {
+    
     this.req = req;
     this.res = res;
 
@@ -435,15 +436,32 @@ delete_user.run = delete_user_handler.bind(delete_user);
 let read_archived_events = new controller();
 
 function read_archived_events_handler (req, res) {
+
+    console.log('in read archived events handler');
     this.req = req;
     this.res = res;
 
     let user = req.user;
     let event_archive = req.event_archive;
 
-    this.info.message += "Found event archive. ";
+    let dt_start = new Date(req.params.start);
+    let dt_end = new Date(req.params.end);
+    
+    let events_in_range = [];
 
-    this.info.content = event_archive.past_events;
+    event_archive.past_events.forEach((event) => {
+        let focused = new Date (event.dt_focus);
+        console.log ('in read archived events handler for loop')
+
+        if ( dt_start <= focused && focused <= dt_end) {
+            events_in_range.push(event);
+        }
+    })
+
+
+    this.info.content = events_in_range;
+
+    this.info.message = `Returning all unresolved events for user within range: ${req.params.start} - ${req.params.end}.`;
         
     this.res.status(this.info.status);
     this.res.json(this.info);
@@ -596,12 +614,43 @@ function hoist_incomplete_events_handler (req, res) {
 hoist_incomplete_events.run = hoist_incomplete_events_handler.bind(hoist_incomplete_events)
 
 
+function get_events(req, res) {
+    console.log('in get_events router')
+    //Might want to use router parameters in the same way you did for username
+    //https://expressjs.com/en/guide/routing.html
+    let dt_start = new Date(req.params.start);
+    let dt_end = new Date(req.params.end);
+
+    let current = new Date();
+
+    console.log(dt_start);
+    console.log(current);
+    console.log(dt_end);
+
+    if ( dt_start <= current && current <= dt_end) {
+        console.log('routing to present')
+        //route to active events method
+        read_unresolved_events.run(req, res);
+
+    }
+    else if (dt_end < current) {
+
+        console.log('routing to archived');
+        //route to event archive method
+        read_archived_events.run(req, res);
+
+    }
+
+    //Maybe it wants this method to do res.json()??????
+}
+
 
 const controllers = {create_user, login_user, add_event, 
     delete_unresolved_event, update_event, read_unresolved_events, 
     add_course, read_courses, update_course, delete_course,
     read_userinfo, update_userinfo, delete_user, 
     logout_user, read_archived_events, restore_archived_event,
-    shift_incomplete_events, archive_completed_events, hoist_incomplete_events};
+    shift_incomplete_events, archive_completed_events, hoist_incomplete_events,
+    get_events};
 
 export {controllers};

@@ -35,9 +35,11 @@ router.route('/user/:username/events/:start.:end') //Adds specific route handler
         .post( user_controller.add_event.run)
         .delete( find_unresolved_event, user_controller.delete_unresolved_event.run)
         .put( find_unresolved_event, user_controller.update_event.run)
-        .get( user_controller.read_unresolved_events.run) //:start.:end parameters will only be accessed here
+        
+        .get( load_event_archive, user_controller.get_events) //:start.:end parameters will only be accessed here
                                                                 //Can't use - because ISO dates already use -
-
+        //get_events redirects to either get events from the archive, or active
+        //based on whether the current date falls within our event range
 
 
 

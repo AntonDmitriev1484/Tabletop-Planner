@@ -162,5 +162,8 @@ async function load_event_archive(req, res, next) {
     )
 }
 
+
+
+
 export {check_session, load_user_by_username, create_event_archive,
 find_unresolved_event, find_current_course, load_event_archive}
