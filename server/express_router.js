@@ -23,12 +23,20 @@ router.route('/user/:username/logout')
 
 //Here :username is a route parameter
 
+// router.use('/user/:username/events', check_session, load_user_by_username); //Sets up middleware
+// router.route('/user/:username/events') //Adds specific route handlers
+//         .post( user_controller.add_event.run)
+//         .delete( find_unresolved_event, user_controller.delete_unresolved_event.run)
+//         .put( find_unresolved_event, user_controller.update_event.run)
+//         .get( user_controller.read_unresolved_events.run)
+
 router.use('/user/:username/events', check_session, load_user_by_username); //Sets up middleware
-router.route('/user/:username/events') //Adds specific route handlers
+router.route('/user/:username/events/:start.:end') //Adds specific route handlers
         .post( user_controller.add_event.run)
         .delete( find_unresolved_event, user_controller.delete_unresolved_event.run)
         .put( find_unresolved_event, user_controller.update_event.run)
-        .get( user_controller.read_unresolved_events.run)
+        .get( user_controller.read_unresolved_events.run) //:start.:end parameters will only be accessed here
+                                                                //Can't use - because ISO dates already use -
 
 
 

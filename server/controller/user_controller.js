@@ -215,10 +215,28 @@ function read_unresolved_events_handler (req, res) {
 
     let user = req.user;
 
-    this.info.message = "Returning all unresolved events for user.";
+    //Might want to use router parameters in the same way you did for username
+    //https://expressjs.com/en/guide/routing.html
+    let dt_start = new Date(req.params.start);
+    let dt_end = new Date(req.params.end);
 
-    //User unresolved events will be sent under a newly added content field
-    this.info.content = user.events.active;
+
+    let events_in_range = [];
+
+    user.events.active.forEach((event) => {
+        let focused = new Date (event.dt_focus);
+
+        if ( dt_start <= focused && focused <= dt_end) {
+            events_in_range.push(event);
+        }
+    })
+
+
+    this.info.content = events_in_range;
+
+    this.info.message = `Returning all unresolved events for user within range: ${req.params.start} - ${req.params.end}.`;
+
+
 
 
     this.res.status(this.info.status);
